@@ -1909,7 +1909,9 @@ function render(stocks,env,filterType){
 
 let allStocks=[],currentFilter='all';
 async function load(){
-  document.getElementById('results').innerHTML='<div class="loading">⏳ 扫描全市场...</div>';
+  // 首次加载显示提示，后续静默刷新
+  if(allStocks.length===0)document.getElementById('results').innerHTML='<div class="loading">⏳ 扫描全市场...</div>';
+  else document.getElementById('updateTime').textContent='刷新中...';
   const env=await fetchMarketEnv();
   allStocks=await fetchStocks();
   render(allStocks,env,currentFilter);
