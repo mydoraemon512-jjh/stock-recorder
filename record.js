@@ -101,7 +101,7 @@ async function main() {
   const stocks = await fetchStocks();
   const analyzed = stocks.map(s => ({ ...s, ...analyze(s) }));
   analyzed.sort((a, b) => b.score - a.score);
-  const top3 = analyzed.slice(0, 3).map(s => ({
+  const top5 = analyzed.slice(0, 3).map(s => ({
     code: s.code, name: s.name, price: s.price,
     chgPct: +s.chgPct.toFixed(2), score: s.score,
     winRate: +(s.winRate || 0).toFixed(0),
@@ -117,17 +117,17 @@ async function main() {
 
   let today = records.find(r => r.date === date);
   if (!today) {
-    today = { date, picks: top3, pickTime: time };
+    today = { date, picks: top5, pickTime: time };
     records.push(today);
   }
 
   const hour = now.getHours();
   if (hour >= 15) {
     today.closeTime = time;
-    today.closeData = top3.map(p => ({ ...p, closePrice: p.price, closeChg: p.chgPct }));
+    today.closeData = top5.map(p => ({ ...p, closePrice: p.price, closeChg: p.chgPct }));
   }
 
-  console.log('前三:', top3.map(p => `${p.name}(${p.score}分)`).join(', '));
+  console.log('前三:', top5.map(p => `${p.name}(${p.score}分)`).join(', '));
   fs.writeFileSync(DATA_FILE, JSON.stringify(records, null, 2));
 }
 
