@@ -364,6 +364,25 @@ function analyze(s,env){
   if(env&&env.sentiment>0&&chg5>0){sc+=3;si.push({t:'顺势',c:'buy'})}
   if(chg5>0&&chg20>0&&nb>0){sc+=2;si.push({t:'多头共振',c:'buy'})}
 
+  // === 13. 北向资金模拟（8分）===
+  const northProxy=(s.outside-s.inside)/Math.max(1,s.vol); // 外盘-内盘/总量
+  if(northProxy>0.3){sc+=6;si.push({t:'北向强势',c:'buy'})}
+  else if(northProxy>0.1){sc+=4;si.push({t:'北向偏多',c:'info'})}
+  else if(northProxy<-0.2){sc-=2;si.push({t:'北向流出',c:'warn'})}
+
+  // === 14. 低波异象（6分）===
+  const volatility=Math.abs(chg5)+Math.abs(chg20);
+  if(volatility<5&&nb>0){sc+=5;si.push({t:'低波稳健',c:'buy'})}
+  else if(volatility<12){sc+=3}
+
+  // === 15. 成交量异动（5分）===
+  if(vr>2.5&&tr>8&&dc>0){sc+=4;si.push({t:'量能爆发',c:'buy'})}
+  else if(vr>1.8){sc+=2}
+
+  // === 16. 趋势稳定性RSRS（7分）===
+  if(chg5>0&&chg20>0&&Math.abs(chg5-chg20)<5){sc+=5;si.push({t:'趋势稳健',c:'buy'})}
+  else if(Math.abs(chg5-chg20)>15){si.push({t:'趋势不稳',c:'warn'})}
+
   // === 排名 ===
   let vd,gd;
   if(sc>=55){vd='⭐ 强烈推荐';gd='top'}
