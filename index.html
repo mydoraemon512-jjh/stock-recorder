@@ -1756,96 +1756,81 @@ async function fetchStocks(){
 }
 
 function analyze(s,env){
-  const signals=[];
-  let score=0;
-
-  // 1. 短期动量（权重最高：捕捉明天涨幅）（20分）
+  const si=[];let sc=0;
   const chg5=s.chg5||0,chg20=s.chg20||0;
-  if(chg5>5&&chg20>0){signals.push({t:'强势上攻',c:'buy'});score+=18}
-  else if(chg5>0&&chg5<5&&chg20<5){signals.push({t:'稳步走强',c:'buy'});score+=14}
-  else if(chg5>-3&&chg5<=0){signals.push({t:'横盘蓄力',c:'buy'});score+=12}
-  else if(chg5<-10){signals.push({t:'超跌反弹',c:'buy'});score+=10}
-  else {signals.push({t:'趋势偏弱',c:'warn'});score+=4}
+  const nb=s.inside>0?(s.outside/s.inside*100-100):0;
+  const vr=s.volRatio||0,tr=s.turnover||0;
+  const dc=s.chgPct||0,wr=s.winRate||0,dt=s.dragonTiger||0;
+  const ld=s.yrLow>0?(s.price/s.yrLow-1)*100:99;
+  const hd=s.yrHigh>0?(s.price/s.yrHigh-1)*100:-99;
+  const hour=new Date().getHours();
 
-  // 2. 资金+量能共振（20分）
-  const netBuy=s.inside>0?(s.outside/s.inside*100-100):0;
-  if(netBuy>20&&s.volRatio>1.2){signals.push({t:'放量抢筹',c:'buy'});score+=18}
-  else if(netBuy>10&&s.volRatio>1){signals.push({t:'量价配合',c:'buy'});score+=15}
-  else if(netBuy>20&&s.volRatio<0.8){signals.push({t:'暗吸筹',c:'buy'});score+=12}
-  else if(netBuy>0){signals.push({t:'偏多',c:'info'});score+=8}
-  else {signals.push({t:'资金流出',c:'warn'});score+=3}
+  // === 1. 尾盘效应（核心20分）===
+  const isLate=hour>=14||hour<10; // 尾盘或早盘竞价
+  if(isLate&&nb>15&&vr>1.2&&dc>0){
+    si.push({t:'尾盘抢筹',c:'buy'});sc+=18;
+  }else if(isLate&&nb>10&&dc>-1){
+    si.push({t:'尾盘蓄力',c:'buy'});sc+=14;
+  }else if(isLate&&nb>5){
+    si.push({t:'尾盘偏多',c:'info'});sc+=10;
+  }else if(isLate){sc+=5}else{sc+=3}
 
-  // 3. 位置（10分）
-  const lowDist=s.yrLow>0?(s.price/s.yrLow-1)*100:99;
-  const highDist=s.yrHigh>0?(s.price/s.yrHigh-1)*100:-99;
-  if(lowDist<10&&chg5>-5){signals.push({t:'底部启动',c:'buy'});score+=9}
-  else if(lowDist<20){signals.push({t:'低位蓄力',c:'info'});score+=7}
-  else if(highDist>-15&&chg5>0){signals.push({t:'突破前高',c:'buy'});score+=8}
-  else {score+=4}
+  // === 2. 隔夜效应（15分）===
+  if(dc>1&&dc<6&&nb>10&&vr>1){si.push({t:'隔夜看涨',c:'buy'});sc+=13}
+  else if(dc>0&&dc<3&&nb>5){si.push({t:'温和偏多',c:'info'});sc+=9}
+  else if(dc>-2&&dc<0&&nb>15){si.push({t:'洗盘吸筹',c:'buy'});sc+=11}
+  else sc+=5;
 
-  // 4. 尾盘信号（10分）
-  const dayChg=s.chgPct||0;
-  if(dayChg>2&&s.volRatio>1.5){signals.push({t:'尾盘抢筹',c:'buy'});score+=9}
-  else if(dayChg>-1&&dayChg<1&&netBuy>10){signals.push({t:'尾盘蓄力',c:'buy'});score+=8}
-  else if(dayChg<-3&&netBuy>15){signals.push({t:'洗盘吸筹',c:'buy'});score+=7}
-  else {score+=5}
+  // === 3. 热点反应（15分）===
+  const hotScore=(tr>5?5:tr>2?2:0)+(vr>1.5?5:vr>1?2:0)+(Math.abs(dc)>3?3:0);
+  if(hotScore>=10){si.push({t:'人气爆棚',c:'buy'});sc+=13}
+  else if(hotScore>=6){si.push({t:'热度上升',c:'buy'});sc+=10}
+  else if(hotScore>=3){si.push({t:'温和关注',c:'info'});sc+=7}
+  else{si.push({t:'冷门',c:'warn'});sc+=3}
 
-  // 5. 胜率+龙虎（15分）
-  const wr=s.winRate||0,dt=s.dragonTiger||0;
-  if(wr>55){score+=12;signals.push({t:'高胜率'+wr.toFixed(0)+'%',c:'buy'})}
-  else if(wr>40){score+=8;signals.push({t:'胜率'+wr.toFixed(0)+'%',c:'info'})}
-  else if(wr>0){score+=4}
+  // === 4. 动量趋势（12分）===
+  if(chg5>3&&chg20>0){si.push({t:'多头排列',c:'buy'});sc+=11}
+  else if(chg5>0){si.push({t:'短线偏多',c:'buy'});sc+=9}
+  else if(chg5>-3){si.push({t:'横盘筑底',c:'info'});sc+=7}
+  else if(chg5<-8&&nb>10){si.push({t:'超跌反弹',c:'buy'});sc+=8}
+  else{sc+=4}
 
-  if(dt>50){score+=8;signals.push({t:'🐉龙虎强推',c:'buy'})}
-  else if(dt>30){score+=4;signals.push({t:'龙虎关注',c:'info'})}
+  // === 5. 资金面（10分）===
+  if(nb>25&&vr>1.3){si.push({t:'主力强攻',c:'buy'});sc+=9}
+  else if(nb>12){si.push({t:'净流入',c:'buy'});sc+=7}
+  else if(nb>0){si.push({t:'微偏多',c:'info'});sc+=5}
+  else{sc+=2}
 
-  // 6. 量能趋势（10分）
-  const tr=s.turnover||0,vr=s.volRatio||0;
-  if(vr>2&&tr>5){score+=9;signals.push({t:'爆量换手',c:'buy'})}
-  else if(vr>1.5&&tr>3){score+=7;signals.push({t:'放量活跃',c:'buy'})}
-  else if(vr>1&&tr>1){score+=5;signals.push({t:'量价正常',c:'info'})}
-  else if(vr<0.5){score+=3;signals.push({t:'地量',c:'warn'})}
-  else score+=4;
+  // === 6. 位置安全（8分）===
+  if(ld<8){si.push({t:'底部区',c:'buy'});sc+=7}
+  else if(ld<18){si.push({t:'低位',c:'info'});sc+=5}
+  else if(hd>-10&&chg5>0){si.push({t:'突破',c:'buy'});sc+=6}
+  else sc+=3;
 
-  // 7. 换手率评价
-  const v=s.vol||0,chg=Math.abs(s.chgPct||0);
-  if(tr>8&&chg>3&&s.outside>s.inside){score+=5;signals.push({t:'高换手抢筹',c:'buy'})}
-  else if(tr>5&&s.outside>s.inside){score+=3;signals.push({t:'换手充分',c:'info'})}
-  if(tr<1&&s.chgPct<0){signals.push({t:'无人问津',c:'warn'})}
+  // === 7. AI胜率+龙虎（10分）===
+  if(wr>50){sc+=8;si.push({t:'AI高胜率'+wr.toFixed(0)+'%',c:'buy'})}
+  else if(wr>35){sc+=5;si.push({t:'AI胜率'+wr.toFixed(0)+'%',c:'info'})}
+  else if(wr>0)sc+=2;
+  if(dt>45){sc+=6;si.push({t:'龙虎看多',c:'buy'})}
+  else if(dt>25){sc+=3;si.push({t:'龙虎关注',c:'info'})}
 
-  // 8. PE辅助（5分）
-  if(s.pe>0&&s.pe<30){score+=4}
-  else if(s.pe>0&&s.pe<60){score+=2}
-
-  // 6. 市场环境（±8分）
+  // === 8. 大盘共振（±6分）===
   if(env&&env.sentiment){
-    const adj=Math.round(env.sentiment*0.8);
-    score+=adj;
-    if(adj>2)signals.push({t:'大盘助攻',c:'buy'});
-    if(adj<-2)signals.push({t:'逆大盘⚠️',c:'warn'});
+    const adj=Math.round(env.sentiment*0.8);sc+=adj;
+    if(adj>2)si.push({t:'大盘助攻',c:'buy'});
+    if(adj<-2)si.push({t:'逆势⚠️',c:'warn'});
   }
+  if(env&&env.etfRatio>0.6)sc+=3;
 
-  // 7. ETF共振（+3分）
-  if(env&&env.etfRatio>0.6)score+=3;
+  // === 排名 ===
+  let vd,gd;
+  if(sc>=55){vd='⭐ 强烈推荐';gd='top'}
+  else if(sc>=45){vd='👍 推荐关注';gd='good'}
+  else if(sc>=35){vd='📋 留意';gd='watch'}
+  else{vd='👀 观察';gd='low'}
 
-  // 9. 散户噪声评价（反向指标，5分）
-  const totalV=s.vol||0,mainR=(s.mainForce||0)/Math.max(1,totalV);
-  const superR=(s.superBig||0)/Math.max(1,totalV);
-  const retailRatio=Math.max(0,1-mainR-superR);
-  if(mainR>0.5){score+=4;signals.push({t:'机构主导',c:'buy'})}
-  else if(retailRatio>0.7&&s.chgPct>5){score-=3;signals.push({t:'散户追高⚠️',c:'warn'})}
-  else if(retailRatio>0.7&&s.chgPct<0){score+=2;signals.push({t:'散户恐慌',c:'info'})}
-  else if(retailRatio<0.4){score+=3;signals.push({t:'低散户噪声',c:'info'})}
-
-  let verdict,grade;
-  if(score>=55){verdict='⭐ 明日看好';grade='top'}
-  else if(score>=45){verdict='👍 推荐关注';grade='good'}
-  else if(score>=35){verdict='📋 留意';grade='watch'}
-  else {verdict='👀 观察';grade='low'}
-
-  return {signals,score,verdict,grade,netBuy,lowDist};
+  return{signals:si,score:sc,verdict:vd,grade:gd,netBuy:nb,lowDist:ld};
 }
-
 function genConclusion(s){
   const parts=[];
   if(s.chg5>3)parts.push('短期趋势走强，惯性有望延续');
