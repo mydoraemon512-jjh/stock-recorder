@@ -133,7 +133,8 @@ h1{font-size:22px;text-align:center;color:#fbbf24;margin-bottom:2px}
     <button class="fbtn" onclick="filter('broker')">券商</button>
     <button class="fbtn" onclick="filter('auto')">汽车</button>
     <button class="fbtn" onclick="filter('ai_app')">AI应用</button>
-    <button class="fbtn" onclick="filter('coal_metal')">有色</button>  </div>
+    <button class="fbtn" onclick="filter('coal_metal')">有色</button>
+    <button class="fbtn" onclick="filter('robot')">机器人</button>  </div>
   <div id="recordsPanel" style="display:none">
     <div class="card" style="margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -165,6 +166,7 @@ const POOLS={
   auto:['600104','000625','601633','000800','601238','600741','002920','601965','002594','300750','000338','601799','600066','000951','600418'],
   ai_app:['002230','688111','300502','300308','002415','300496','688041','603501','300394','688561','300474','300229','300624','688787','688008'],
   coal_metal:['601088','600188','600348','600546','600985','000933','601898','601225','600438','000807','600362','000630','000878','600489','601899'],
+  robot:['300124','002230','688017','300024','002747','688160','300607','002527','300024','002698','688165','300161','002957','688218','300508'],
   pcb:['002916','002384','300476','603228','002463','300739','002636','300657','300852','688183','002815','300460','603920','002134','300322'],
 };
 // 全市场434只覆盖股池
@@ -1873,7 +1875,7 @@ function render(stocks,env,filterType){
   analyzed.sort((a,b)=>b.score-a.score);
 
   let filtered=analyzed;
-  const poolKeys={chip:POOLS.chip,optical:POOLS.optical,consumer:POOLS.consumer,semi:POOLS.semi,bank:POOLS.bank,power:POOLS.power,pcb:POOLS.pcb};
+  const poolKeys={chip:POOLS.chip,optical:POOLS.optical,consumer:POOLS.consumer,semi:POOLS.semi,bank:POOLS.bank,power:POOLS.power,pcb:POOLS.pcb,cpo:POOLS.cpo,storage:POOLS.storage,baijiu:POOLS.baijiu,newenergy:POOLS.newenergy,pharma:POOLS.pharma,military:POOLS.military,broker:POOLS.broker,auto:POOLS.auto,ai_app:POOLS.ai_app,coal_metal:POOLS.coal_metal,robot:POOLS.robot};
   if(poolKeys[filterType])filtered=analyzed.filter(s=>poolKeys[filterType].includes(s.code));
 
   const top=filtered.slice(0,20);
