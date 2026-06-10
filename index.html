@@ -343,6 +343,27 @@ function analyze(s,env){
   }
   if(env&&env.etfRatio>0.6)sc+=3;
 
+  // === 9. 波动率收窄（15分）===
+  const amp=Math.abs(dc);const atrRatio=chg5!==0?Math.abs(chg20)/Math.max(0.1,Math.abs(chg5)):1;
+  if(atrRatio<0.7&&amp<3){sc+=13;si.push({t:'波动收窄',c:'buy'})}
+  else if(atrRatio<1){sc+=8;si.push({t:'波动正常',c:'info'})}
+  else if(atrRatio<1.5){sc+=5}else{sc+=2}
+
+  // === 10. 价格位置（8分）===
+  const highDist60=chg20<0?Math.abs(chg20):0;
+  if(highDist60>15&&highDist60<40){sc+=7;si.push({t:'黄金坑',c:'buy'})}
+  else if(highDist60>10){sc+=4;si.push({t:'回调充分',c:'info'})}else sc+=2;
+
+  // === 11. 大单潜伏（12分）===
+  const bigOrder=(nb>15?35:0)+(Math.min(20,Math.abs(chg20)*0.5))+(tr>3?25:0);
+  if(bigOrder>60){sc+=10;si.push({t:'主力潜伏',c:'buy'})}
+  else if(bigOrder>30){sc+=5;si.push({t:'暗流',c:'info'})}else sc+=2;
+
+  // === 12. 趋势共振（5分）===
+  if(env&&env.sentiment<0&&chg5<0){sc-=3;si.push({t:'逆风',c:'warn'})}
+  if(env&&env.sentiment>0&&chg5>0){sc+=3;si.push({t:'顺势',c:'buy'})}
+  if(chg5>0&&chg20>0&&nb>0){sc+=2;si.push({t:'多头共振',c:'buy'})}
+
   // === 排名 ===
   let vd,gd;
   if(sc>=55){vd='⭐ 强烈推荐';gd='top'}
