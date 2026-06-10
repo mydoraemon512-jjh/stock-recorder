@@ -163,9 +163,9 @@ async function fetchMarketEnv(){
   try{
     // 指数K线
     const [sh,sz,cy]=await Promise.all([
-      fetch('http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=sh000001&scale=240&ma=no&datalen=10').then(r=>r.json()),
-      fetch('http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=sz399001&scale=240&ma=no&datalen=10').then(r=>r.json()),
-      fetch('http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=sz399006&scale=240&ma=no&datalen=10').then(r=>r.json()),
+      fetch('https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=sh000001&scale=240&ma=no&datalen=10').then(r=>r.json()),
+      fetch('https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=sz399001&scale=240&ma=no&datalen=10').then(r=>r.json()),
+      fetch('https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=sz399006&scale=240&ma=no&datalen=10').then(r=>r.json()),
     ]);
     // 各指数趋势
     const calcTrend=k=>{if(!k.length)return 0;return((+k[k.length-1].close/+k[0].close-1)*100)};
@@ -174,7 +174,7 @@ async function fetchMarketEnv(){
 
     // ETF多空
     const etfCodes=['sh510050','sh510300','sh510500','sz159919','sz159915','sh588000','sh513100','sz159941'];
-    const etfText=await gbkFetch('http://qt.gtimg.cn/q='+etfCodes.join(','));
+    const etfText=await gbkFetch('https://qt.gtimg.cn/q='+etfCodes.join(','));
     let up=0,down=0;
     for(const line of etfText.split(';')){
       const m=line.match(/="(.+)"/);if(!m)continue;
@@ -205,7 +205,7 @@ async function fetchMarketEnv(){
 
     // 美股指数
     try{
-      const usText=await gbkFetch('http://qt.gtimg.cn/q=usIXIC,usINX');
+      const usText=await gbkFetch('https://qt.gtimg.cn/q=usIXIC,usINX');
       for(const line of usText.split(';')){
         const m=line.match(/="(.+)"/);if(!m)continue;
         const f=m[1].split('~');
@@ -236,7 +236,7 @@ async function fetchStocks(){
   for(let i=0;i<ALL.length;i+=40){
     const batch=ALL.slice(i,i+40).map(c=>(c[0]==='6'||c[0]==='5'||c[0]==='9'?'sh':'sz')+c).join(',');
     try{
-      const text=await gbkFetch('http://qt.gtimg.cn/q='+batch);
+      const text=await gbkFetch('https://qt.gtimg.cn/q='+batch);
       for(const line of text.split(';')){
         if(!line.includes('="'))continue;
         const m=line.match(/="(.+)"/);if(!m)continue;
