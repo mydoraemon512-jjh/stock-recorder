@@ -3,6 +3,7 @@
  * GitHub Actions 定时运行：9:30 记录推荐，15:00 更新收盘
  */
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
@@ -16,17 +17,19 @@ const POOL = ['000001','000002','000858','002049','002230','002241','002415','00
   '688126','688256','688396','688561','688981'];
 
 function httpGet(url) {
+  const mod = url.startsWith('https') ? https : http;
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+    const req = mod.get(url, (res) => {
       let data = '';
       res.on('data', c => data += c);
       res.on('end', () => resolve(data));
-    }).on('error', reject);
+    });
+    req.setTimeout(10000, () => { req.destroy(); reject(new Error('timeout')); });
+    req.on('error', reject);
   });
 }
 
 async function fetchStocks() {
-  // 东方财富数据
   const emUrl = 'http://push2.eastmoney.com/api/qt/clist/get?' +
     'fid=f184&po=1&pz=500&pn=1&np=1&fltt=2&invt=2' +
     '&fs=m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23' +
@@ -42,7 +45,6 @@ async function fetchStocks() {
     };
   }
 
-  // 腾讯行情补充
   const qtUrl = 'http://qt.gtimg.cn/q=' + POOL.map(c =>
     (c[0] === '6' || c[0] === '5' || c[0] === '9' ? 'sh' : 'sz') + c
   ).join(',');
@@ -74,24 +76,20 @@ function analyze(s) {
   let score = 0;
   const netBuy = s.inside > 0 ? (s.outside / s.inside * 100 - 100) : 0;
 
-  // 动量
   if (s.chg5 > 5) score += 18;
   else if (s.chg5 > 0) score += 14;
   else if (s.chg5 > -3) score += 10;
   else score += 4;
 
-  // 资金
   if (netBuy > 20 && s.volRatio > 1.2) score += 18;
   else if (netBuy > 10) score += 12;
   else if (netBuy > 0) score += 8;
   else score += 3;
 
-  // 胜率
   if (s.winRate > 55) score += 12;
   else if (s.winRate > 40) score += 8;
   else if (s.winRate > 0) score += 4;
 
-  // 龙虎榜
   if (s.dragonTiger > 50) score += 8;
   else if (s.dragonTiger > 30) score += 4;
 
@@ -104,11 +102,8 @@ async function main() {
   const analyzed = stocks.map(s => ({ ...s, ...analyze(s) }));
   analyzed.sort((a, b) => b.score - a.score);
   const top3 = analyzed.slice(0, 3).map(s => ({
-    code: s.code,
-    name: s.name,
-    price: s.price,
-    chgPct: +s.chgPct.toFixed(2),
-    score: s.score,
+    code: s.code, name: s.name, price: s.price,
+    chgPct: +s.chgPct.toFixed(2), score: s.score,
     winRate: +(s.winRate || 0).toFixed(0),
     dragonTiger: +(s.dragonTiger || 0).toFixed(0),
   }));
@@ -117,29 +112,23 @@ async function main() {
   const date = now.toISOString().slice(0, 10);
   const time = now.toTimeString().slice(0, 5);
 
-  // 读取已有记录
   let records = [];
   try { records = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8')); } catch (e) {}
 
-  // 找今天的记录
   let today = records.find(r => r.date === date);
   if (!today) {
     today = { date, picks: top3, pickTime: time };
     records.push(today);
   }
 
-  // 如果是15:00之后，记录收盘
   const hour = now.getHours();
   if (hour >= 15) {
     today.closeTime = time;
     today.closeData = top3.map(p => ({ ...p, closePrice: p.price, closeChg: p.chgPct }));
-    console.log('收盘数据已记录:', today.closeData.length, '只');
   }
 
   console.log('前三:', top3.map(p => `${p.name}(${p.score}分)`).join(', '));
-
   fs.writeFileSync(DATA_FILE, JSON.stringify(records, null, 2));
-  console.log('记录已保存, 共', records.length, '天');
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
