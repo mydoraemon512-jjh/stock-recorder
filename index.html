@@ -1940,7 +1940,7 @@ async function load(){
 function filter(type){
   currentFilter=type;
   document.querySelectorAll('.fbtn').forEach(b=>{
-    const map={all:'全部',semi:'半导体',chip:'芯片',optical:'光通信',pcb:'PCB',bank:'银行',power:'电力',consumer:'消费'};
+    const map={all:'全部',semi:'半导体',chip:'芯片',optical:'光通信',pcb:'PCB',bank:'银行',power:'电力',consumer:'消费',cpo:'CPO',storage:'存储',baijiu:'白酒',newenergy:'新能源',pharma:'医药',military:'军工',broker:'券商',auto:'汽车',ai_app:'AI应用',coal_metal:'有色',robot:'机器人'};
     b.classList.toggle('active',map[type]===b.textContent.trim());
   });
   if(allStocks.length>0)render(allStocks,marketEnv,type);
