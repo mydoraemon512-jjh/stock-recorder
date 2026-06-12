@@ -545,14 +545,14 @@ function showDay(d){
     if(r){
       html+=`<div class="card" style="opacity:0.85;cursor:pointer" onclick="openScoreModal(SCHEDULE.find(x=>x.home==='${m.home}'&&x.away==='${m.away}'))">
         <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:#fbbf24">${m.grp}组·第${m.r}轮</span><span style="font-size:9px;color:#64748b">${m.bjt}</span></div>
-        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role">🏠 主队</span></div><div class="score-box">${r[0]}-${r[1]}</div><div class="team" style="color:#94a3b8">${m.away}<span class="role">✈️ 客队</span></div><div class="flag">${flag(m.away)}</div></div>
+        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role">🏠 主队</span></div><div class="score-box">${r[0]}-${r[1]}</div><div class="team" style="color:#94a3b8;text-align:right">${m.away}<span class="role">✈️ 客队</span></div><div class="flag">${flag(m.away)}</div></div>
         <span class="result-tag">已结束</span></div>`;
     }else{
       const pred=predict(m.home,m.away);
       const a=pred.analysis;
       html+=`<div class="card" style="cursor:pointer" onclick="openScoreModal(SCHEDULE.find(x=>x.home==='${m.home}'&&x.away==='${m.away}'))">
         <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:#fbbf24">${m.grp}组·第${m.r}轮</span><span style="font-size:9px;color:#64748b">${m.bjt}</span></div>
-        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role">🏠 主队 · ${a?Math.round(a.hTotal):'?'}分</span></div><div class="vs">VS</div><div class="team" style="color:#94a3b8">${m.away}<span class="role">✈️ 客队 · ${a?Math.round(a.aTotal):'?'}分</span></div><div class="flag">${flag(m.away)}</div></div>
+        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role">🏠 主队 · ${a?Math.round(a.hTotal):'?'}分</span></div><div class="vs">VS</div><div class="team" style="color:#94a3b8;text-align:right">${m.away}<span class="role">✈️ 客队 · ${a?Math.round(a.aTotal):'?'}分</span></div><div class="flag">${flag(m.away)}</div></div>
         <div style="font-size:9px;color:#64748b;margin:2px 0">AI多因子预测比分（主队在前）</div><div class="preds">`;
       for(const p of pred.scores)html+=`<div class="pred"><div class="s">${p.score}</div><div class="p">${p.prob}%</div><div class="bar"><div class="bar-fill" style="width:${p.prob}%"></div></div></div>`;
       html+=`</div><div class="wdl"><span>${m.home}胜 ${pred.hWin}%</span><span>平 ${pred.draw}%</span><span>${m.away}胜 ${pred.aWin}%</span></div>`;
