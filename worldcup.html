@@ -69,8 +69,8 @@ const SCHEDULE=[
   {d:3,grp:'H',et:'22:00',bjt:'6/15 10:00',home:'乌拉圭',away:'澳大利亚'},
 ];
 const RANKINGS={
-  '巴西':1,'阿根廷':2,'法国':3,'英格兰':4,'西班牙':5,'德国':6,'荷兰':7,'葡萄牙':8,
-  '意大利':9,'墨西哥':10,'哥伦比亚':11,'乌拉圭':12,'丹麦':13,'克罗地亚':14,'日本':15,
+  '巴西':1,'阿根廷':2,'法国':3,'英格兰':4,'葡萄牙':5,'西班牙':6,'德国':7,'荷兰':8,
+  '意大利':9,'哥伦比亚':10,'乌拉圭':11,'丹麦':12,'日本':13,'墨西哥':14,'克罗地亚':15,
   '美国':16,'塞内加尔':17,'秘鲁':18,'摩洛哥':19,'智利':20,'韩国':21,'尼日利亚':22,
   '埃及':23,'喀麦隆':24,'加拿大':25,'沙特':26,'伊朗':27,'澳大利亚':28,'牙买加':29,
   '卡塔尔':30,'新西兰':31,'阿联酋':32,'中国':33
@@ -114,7 +114,7 @@ function fact(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r}
 
 function predictMatch(home,away){
   const r1=RANKINGS[home]||20,r2=RANKINGS[away]||20;
-  const base=2.2,homeAdv=0.4,rankDiff=(r2-r1)*0.03;
+  const base=2.2,homeAdv=0.2,rankDiff=(r2-r1)*0.04;
   // 新闻影响：每-1分减少0.15个预期进球
   const newsH=getImpact(home)*0.15,newsA=getImpact(away)*0.15;
   const lambdaHome=Math.max(0.3,base+homeAdv+rankDiff+newsH);
