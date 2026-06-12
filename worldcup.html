@@ -49,16 +49,24 @@ h1{text-align:center;color:#fbbf24;font-size:24px;margin-bottom:4px}
 </div>
 
 <script>
-// 2026世界杯小组赛程（6月11日起）
+// 2026世界杯小组赛程
 const SCHEDULE=[
-  {d:0,home:'墨西哥',away:'葡萄牙',grp:'A'},{d:0,home:'意大利',away:'新西兰',grp:'A'},
-  {d:0,home:'巴西',away:'喀麦隆',grp:'B'},{d:0,home:'丹麦',away:'沙特',grp:'B'},
-  {d:1,home:'阿根廷',away:'韩国',grp:'C'},{d:1,home:'尼日利亚',away:'阿联酋',grp:'C'},
-  {d:1,home:'法国',away:'加拿大',grp:'D'},{d:1,home:'秘鲁',away:'卡塔尔',grp:'D'},
-  {d:2,home:'英格兰',away:'日本',grp:'E'},{d:2,home:'埃及',away:'牙买加',grp:'E'},
-  {d:2,home:'西班牙',away:'摩洛哥',grp:'F'},{d:2,home:'智利',away:'伊朗',grp:'F'},
-  {d:3,home:'德国',away:'哥伦比亚',grp:'G'},{d:3,home:'塞内加尔',away:'中国',grp:'G'},
-  {d:3,home:'荷兰',away:'美国',grp:'H'},{d:3,home:'乌拉圭',away:'澳大利亚',grp:'H'},
+  {d:0,grp:'A',et:'13:00',bjt:'6/12 01:00',home:'墨西哥',away:'葡萄牙'},
+  {d:0,grp:'A',et:'16:00',bjt:'6/12 04:00',home:'意大利',away:'新西兰'},
+  {d:0,grp:'B',et:'19:00',bjt:'6/12 07:00',home:'巴西',away:'喀麦隆'},
+  {d:0,grp:'B',et:'22:00',bjt:'6/12 10:00',home:'丹麦',away:'沙特'},
+  {d:1,grp:'C',et:'13:00',bjt:'6/13 01:00',home:'阿根廷',away:'韩国'},
+  {d:1,grp:'C',et:'16:00',bjt:'6/13 04:00',home:'尼日利亚',away:'阿联酋'},
+  {d:1,grp:'D',et:'19:00',bjt:'6/13 07:00',home:'法国',away:'加拿大'},
+  {d:1,grp:'D',et:'22:00',bjt:'6/13 10:00',home:'秘鲁',away:'卡塔尔'},
+  {d:2,grp:'E',et:'13:00',bjt:'6/14 01:00',home:'英格兰',away:'日本'},
+  {d:2,grp:'E',et:'16:00',bjt:'6/14 04:00',home:'埃及',away:'牙买加'},
+  {d:2,grp:'F',et:'19:00',bjt:'6/14 07:00',home:'西班牙',away:'摩洛哥'},
+  {d:2,grp:'F',et:'22:00',bjt:'6/14 10:00',home:'智利',away:'伊朗'},
+  {d:3,grp:'G',et:'13:00',bjt:'6/15 01:00',home:'德国',away:'哥伦比亚'},
+  {d:3,grp:'G',et:'16:00',bjt:'6/15 04:00',home:'塞内加尔',away:'中国'},
+  {d:3,grp:'H',et:'19:00',bjt:'6/15 07:00',home:'荷兰',away:'美国'},
+  {d:3,grp:'H',et:'22:00',bjt:'6/15 10:00',home:'乌拉圭',away:'澳大利亚'},
 ];
 const RANKINGS={
   '巴西':1,'阿根廷':2,'法国':3,'英格兰':4,'西班牙':5,'德国':6,'荷兰':7,'葡萄牙':8,
