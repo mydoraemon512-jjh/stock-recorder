@@ -6,8 +6,6 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<script>if(location.search.indexOf('v=')===-1&&!sessionStorage.getItem('v3')){sessionStorage.setItem('v3','1');location.search='?v=3'}</script>
-<meta http-equiv="Expires" content="0">
 <title>🏆 2026世界杯 AI预测</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -609,13 +607,10 @@ function analyzeMatch(home,away){
   const tactics=getTacticalClash(home,away);
   if(tactics.boost>0)hT4+=tactics.boost;
   else if(tactics.boost<0)aT4-=tactics.boost;
-  // 东道国场地加成（美加墨在自家国土）
-  const hosts={墨西哥:1.08,美国:1.08,加拿大:1.05};
-  const venueCountry=venueData?venueData.city:''; // 简化处理
-  if(hosts[home]&&(matchVenue||'').includes(home==='墨西哥'?'🇲🇽':home==='美国'?'🇺🇸':'🇨🇦'))hT4+=5;
-  if(hosts[away]&&(matchVenue||'').includes(away==='墨西哥'?'🇲🇽':away==='美国'?'🇺🇸':'🇨🇦'))aT4+=5;
-  // 草皮适应：天然草适合技术流，人工草适合体能流
-  const hTraits2=getTraits(home),aTraits2=getTraits(away);
+  // 东道国场地加成：复用上方hosts变量的逻辑
+  const venueCountry=venueData?venueData.city:'';
+  if(hBoost>1.0)hT4+=5; // hBoost已在前面计算，东道主在本国有加成
+  if(aBoost>1.0)aT4+=5;
 
   // ═══ 加权汇总 + 实力断层放大 ═══
   let hRaw=hT1*0.45+hT2*0.20+hT3*0.15+hTN*0.10+hT4*0.10;
