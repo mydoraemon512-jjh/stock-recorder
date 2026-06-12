@@ -31,7 +31,13 @@ h1{text-align:center;color:#fbbf24;font-size:24px;margin-bottom:4px}
 <body>
 <div class="app">
   <h1>🏆 2026世界杯预测</h1>
-  <div class="sub">AI预测引擎 · 实时动态更新</div>
+  <div class="sub">AI预测引擎 · 实时新闻影响 · 动态更新</div>
+
+  <!-- 实时新闻影响 -->
+  <div class="card" id="newsCard" style="background:#1a1000;border-color:#f59e0b">
+    <h3>📰 实时新闻影响 <span style="font-size:10px;color:#64748b;font-weight:400" id="newsTime"></span></h3>
+    <div id="newsList" style="font-size:10px;color:#94a3b8;max-height:120px;overflow-y:auto"></div>
+  </div>
 
   <div class="tabs">
     <button class="tab active" onclick="showDay(0)">今天</button>
@@ -62,6 +68,37 @@ const RANKINGS={
   '卡塔尔':30,'新西兰':31,'阿联酋':32,'中国':33
 };
 const H2H={};
+let newsImpacts={}; // 新闻对球队的影响分数
+
+// 实时新闻+影响分析
+async function fetchNews(){
+  try{
+    const r=await fetch('https://rss.app/feeds/v1.1/XN7NqVH4x8H8f2Yg.json?t='+Date.now());
+    if(!r.ok)throw new Error('fail');
+    const d=await r.json();const items=d.items||[];
+    if(items.length===0)return;
+    document.getElementById('newsTime').textContent=' · '+new Date().toLocaleTimeString();
+    let html='';const impacts={};
+    for(const item of items.slice(0,8)){
+      const title=item.title||'';const desc=(item.content_text||'').slice(0,80);
+      // 关键词检测 → 影响力分数
+      let impact=0,target='',color='#64748b';
+      for(const [team,idx] of Object.entries(RANKINGS)){
+        if(title.includes(team)||desc.includes(team)){target=team;break}
+      }
+      if(title.match(/受伤|伤退|缺席|骨折|拉伤/)){impact=-3;color='#ef4444'}
+      else if(title.match(/不满|抱怨|批评|炮轰|冲突|矛盾/)){impact=-1;color='#f59e0b'}
+      else if(title.match(/豪言|必胜|夺冠|最强|碾压|屠杀/)){impact=1;color='#22c55e'}
+      else if(title.match(/换帅|下课|解雇|辞职/)){impact=-2;color='#ef4444'}
+      if(target&&impact!==0){impacts[target]=(impacts[target]||0)+impact}
+      html+='<div style="padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.02)"><span style="color:'+color+'">'+(impact>0?'📈':impact<0?'📉':'📰')+'</span> '+title.slice(0,60)+'</div>';
+    }
+    document.getElementById('newsList').innerHTML=html||'暂无新闻';
+    newsImpacts=impacts;showDay(currentDay);
+  }catch(e){document.getElementById('newsList').innerHTML='新闻加载中...'}
+}
+
+function getImpact(team){return newsImpacts[team]||0}
 
 // 泊松分布预测
 function poisson(lambda,k){return Math.exp(-lambda)*Math.pow(lambda,k)/fact(k)}
@@ -70,16 +107,20 @@ function fact(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r}
 function predictMatch(home,away){
   const r1=RANKINGS[home]||20,r2=RANKINGS[away]||20;
   const base=2.2,homeAdv=0.4,rankDiff=(r2-r1)*0.03;
-  const lambdaHome=Math.max(0.3,base+homeAdv+rankDiff);
-  const lambdaAway=Math.max(0.2,base-homeAdv-rankDiff);
+  // 新闻影响：每-1分减少0.15个预期进球
+  const newsH=getImpact(home)*0.15,newsA=getImpact(away)*0.15;
+  const lambdaHome=Math.max(0.3,base+homeAdv+rankDiff+newsH);
+  const lambdaAway=Math.max(0.2,base-homeAdv-rankDiff+newsA);
   const scores=[];
   for(let h=0;h<=5;h++)for(let a=0;a<=5;a++){const p=poisson(lambdaHome,h)*poisson(lambdaAway,a);if(p>0.005)scores.push({h,a,p})}
   scores.sort((a,b)=>b.p-a.p);
   return scores.slice(0,3).map(s=>({score:s.h+'-'+s.a,prob:(s.p*100).toFixed(1)}));
 }
 
+let currentDay=0;
 function showDay(d){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',parseInt(t.dataset.d)===d));
+  currentDay=d;
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===d));
   const matches=SCHEDULE.filter(m=>m.d===d);
   let html='';
   for(const m of matches){
@@ -107,8 +148,8 @@ function flag(name){
   const m={'巴西':'🇧🇷','阿根廷':'🇦🇷','法国':'🇫🇷','英格兰':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','西班牙':'🇪🇸','德国':'🇩🇪','荷兰':'🇳🇱','葡萄牙':'🇵🇹','意大利':'🇮🇹','墨西哥':'🇲🇽','哥伦比亚':'🇨🇴','乌拉圭':'🇺🇾','丹麦':'🇩🇰','日本':'🇯🇵','美国':'🇺🇸','塞内加尔':'🇸🇳','秘鲁':'🇵🇪','摩洛哥':'🇲🇦','智利':'🇨🇱','韩国':'🇰🇷','尼日利亚':'🇳🇬','埃及':'🇪🇬','喀麦隆':'🇨🇲','加拿大':'🇨🇦','沙特':'🇸🇦','伊朗':'🇮🇷','澳大利亚':'🇦🇺','牙买加':'🇯🇲','卡塔尔':'🇶🇦','新西兰':'🇳🇿','阿联酋':'🇦🇪','中国':'🇨🇳','克罗地亚':'🇭🇷'};
   return m[name]||'🏳️';
 }
-showDay(0);
-setInterval(()=>showDay(0),60000);
+showDay(0);fetchNews();
+setInterval(()=>{showDay(currentDay);fetchNews()},120000);
 </script>
 </body>
 </html>
