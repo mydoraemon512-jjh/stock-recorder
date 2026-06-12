@@ -64,15 +64,7 @@ h3{font-size:12px;color:#fbbf24;margin-bottom:4px}
 .bracket-slot .b-team{font-size:10px;font-weight:700}
 .bracket-slot .b-team.pending{color:#334155;font-style:italic}
 .bracket-slot .b-note{font-size:7px;color:#64748b}
-.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100}
-.modal{background:#1a1a2e;border-radius:16px;padding:20px;max-width:320px;width:90%;border:1px solid #334155}
-.modal h3{color:#fbbf24;margin-bottom:12px;text-align:center;font-size:14px}
-.modal .teams{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:12px}
-.modal input{width:50px;height:40px;text-align:center;font-size:20px;font-weight:900;font-family:monospace;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#fbbf24}
-.modal button{padding:8px 20px;border-radius:8px;border:none;font-family:inherit;font-weight:700;cursor:pointer;font-size:12px}
-.modal .btn-save{background:#fbbf24;color:#0a0a1a;margin-right:8px}
-.modal .btn-cancel{background:#334155;color:#94a3b8}
-.modal .btn-clear{background:#ef4444;color:#fff;margin-right:8px}
+.auto-refresh{font-size:8px;color:#22c55e;margin-left:4px}
 .controls{display:flex;gap:6px;margin-bottom:8px;align-items:center;justify-content:flex-end}
 .ctrl-btn{padding:5px 12px;border-radius:14px;border:1px solid #334155;background:#111;color:#94a3b8;font-size:10px;cursor:pointer;font-family:inherit}
 </style>
@@ -100,24 +92,6 @@ h3{font-size:12px;color:#fbbf24;margin-bottom:4px}
   <div id="viewBracket" style="display:none">
     <div class="controls"><span style="font-size:9px;color:#64748b">基于当前积分动态对阵</span></div>
     <div class="bracket-container" id="bracketView"></div>
-  </div>
-</div>
-<div class="modal-overlay" id="scoreModal" style="display:none">
-  <div class="modal">
-    <h3>✏️ 输入比分</h3>
-    <div style="text-align:center;font-size:10px;color:#64748b;margin-bottom:8px" id="modalMatchInfo"></div>
-    <div class="teams">
-      <span id="modalHome" style="font-weight:700;font-size:13px"></span>
-      <input id="modalHomeScore" type="number" min="0" max="20" value="0" onfocus="this.select()">
-      <span style="font-size:16px;color:#334155">-</span>
-      <input id="modalAwayScore" type="number" min="0" max="20" value="0" onfocus="this.select()">
-      <span id="modalAway" style="font-weight:700;font-size:13px"></span>
-    </div>
-    <div style="text-align:center">
-      <button class="btn-clear" onclick="clearResult()">清除</button>
-      <button class="btn-save" onclick="saveResult()">保存</button>
-      <button class="btn-cancel" onclick="closeModal()">取消</button>
-    </div>
   </div>
 </div>
 
@@ -488,11 +462,40 @@ const FLAGS={
 };
 function flag(n){return FLAGS[n]||'🏳️'}
 
-let editingMatch=null;
-function openScoreModal(m){editingMatch=m;const r=getResult(m);document.getElementById('modalHome').textContent='🏠 '+flag(m.home)+' '+m.home+'（主队）';document.getElementById('modalAway').textContent='✈️ '+m.away+'（客队） '+flag(m.away);document.getElementById('modalMatchInfo').textContent=m.grp+'组 · 第'+m.r+'轮 · '+m.bjt;document.getElementById('modalHomeScore').value=r?r[0]:0;document.getElementById('modalAwayScore').value=r?r[1]:0;document.getElementById('scoreModal').style.display='flex';setTimeout(()=>document.getElementById('modalHomeScore').focus(),100);}
-function closeModal(){document.getElementById('scoreModal').style.display='none';editingMatch=null}
-function saveResult(){if(!editingMatch)return;const h=parseInt(document.getElementById('modalHomeScore').value)||0;const a=parseInt(document.getElementById('modalAwayScore').value)||0;setResult(editingMatch,h,a);closeModal();renderAll();}
-function clearResult(){if(!editingMatch)return;clearResultKey(editingMatch);closeModal();renderAll();}
+// ═══════════════════════════════════════════
+// AUTO-FETCH: 实时从网络抓取比分
+// ═══════════════════════════════════════════
+const SCORE_API_URL='https://raw.githubusercontent.com/mydoraemon512-jjh/stock-recorder/main/data/scores.json';
+let fetchInterval=null;
+
+async function fetchScores(){
+  try{
+    const resp=await fetch(SCORE_API_URL+'?t='+Date.now());
+    if(!resp.ok)return false;
+    const data=await resp.json();
+    if(data&&typeof data==='object'){
+      let changed=false;
+      for(const [key,val] of Object.entries(data)){
+        if(Array.isArray(val)&&val.length===2){
+          const old=RESULTS[key];
+          if(!old||old[0]!==val[0]||old[1]!==val[1]){
+            RESULTS[key]=[val[0],val[1]];
+            changed=true;
+          }
+        }
+      }
+      if(changed){saveResults();renderAll();}
+      updateStatus();
+      return true;
+    }
+  }catch(e){console.warn('Score fetch failed:',e.message)}
+  return false;
+}
+
+function startAutoFetch(){
+  fetchScores();
+  fetchInterval=setInterval(fetchScores,60000); // 每60秒刷新
+}
 
 const DAY_LABELS={0:'6/12 周五',1:'6/13 周六',2:'6/14 周日',3:'6/15 周一',4:'6/16 周二',5:'6/17 周三',6:'6/18 周四',7:'6/19 周五',8:'6/20 周六',9:'6/21 周日',10:'6/22 周一',11:'6/23 周二',12:'6/24 周三',13:'6/25 周四',14:'6/26 周五',15:'6/27 周六',16:'6/28 周日'};
 let currentDay=0;
@@ -543,21 +546,20 @@ function showDay(d){
   for(const m of matches){
     const r=getResult(m);
     if(r){
-      html+=`<div class="card" style="opacity:0.85;cursor:pointer" onclick="openScoreModal(SCHEDULE.find(x=>x.home==='${m.home}'&&x.away==='${m.away}'))">
+      html+=`<div class="card" style="opacity:0.85">
         <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:#fbbf24">${m.grp}组·第${m.r}轮</span><span style="font-size:9px;color:#64748b">${m.bjt}</span></div>
         <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role">🏠 主队</span></div><div class="score-box">${r[0]}-${r[1]}</div><div class="team" style="color:#94a3b8;text-align:right">${m.away}<span class="role">✈️ 客队</span></div><div class="flag">${flag(m.away)}</div></div>
         <span class="result-tag">已结束</span></div>`;
     }else{
       const pred=predict(m.home,m.away);
       const a=pred.analysis;
-      html+=`<div class="card" style="cursor:pointer" onclick="openScoreModal(SCHEDULE.find(x=>x.home==='${m.home}'&&x.away==='${m.away}'))">
+      html+=`<div class="card">
         <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:#fbbf24">${m.grp}组·第${m.r}轮</span><span style="font-size:9px;color:#64748b">${m.bjt}</span></div>
         <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role">🏠 主队 · ${a?Math.round(a.hTotal):'?'}分</span></div><div class="vs">VS</div><div class="team" style="color:#94a3b8;text-align:right">${m.away}<span class="role">✈️ 客队 · ${a?Math.round(a.aTotal):'?'}分</span></div><div class="flag">${flag(m.away)}</div></div>
         <div style="font-size:9px;color:#64748b;margin:2px 0">AI多因子预测比分（主队在前）</div><div class="preds">`;
       for(const p of pred.scores)html+=`<div class="pred"><div class="s">${p.score}</div><div class="p">${p.prob}%</div><div class="bar"><div class="bar-fill" style="width:${p.prob}%"></div></div></div>`;
       html+=`</div><div class="wdl"><span>${m.home}胜 ${pred.hWin}%</span><span>平 ${pred.draw}%</span><span>${m.away}胜 ${pred.aWin}%</span></div>`;
-      html+=renderAnalysis(a);
-      html+=`<div style="font-size:8px;color:#334155;margin-top:3px">👆 点击输入实际比分</div></div>`;
+      html+=renderAnalysis(a)+`</div>`;
     }
   }
   document.getElementById('matchList').innerHTML=html||'<div style="text-align:center;padding:40px;color:#64748b">今日无比赛</div>';
@@ -635,12 +637,10 @@ function switchView(v){
 }
 function resetAllResults(){if(confirm('确定清除所有比分数据？')){RESULTS={};saveResults();setDefaults();renderAll();}}
 function renderAll(){renderDayTabs();if(currentView==='schedule')showDay(currentDay);if(currentView==='groups')renderGroups();if(currentView==='bracket')renderBracket();}
-function updateStatus(){const t=Object.keys(RESULTS).length;document.getElementById('statusBar').textContent=`四层特征模型：T1基本面+T2决定性+T3心理历史+N噪音过滤 | ${t}/${SCHEDULE.length}场已出结果`;}
-
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-document.getElementById('scoreModal').addEventListener('click',e=>{if(e.target===document.getElementById('scoreModal'))closeModal();});
+function updateStatus(){const t=Object.keys(RESULTS).length;document.getElementById('statusBar').innerHTML=`四层特征模型：T1基本面+T2决定性+T3心理历史+N噪音过滤 | ${t}/${SCHEDULE.length}场已出结果 <span class="auto-refresh">🔄60s自动刷新</span>`;}
 
 renderDayTabs();showDay(0);updateStatus();
+startAutoFetch();
 </script>
 </body>
 </html>
