@@ -489,7 +489,7 @@ const FLAGS={
 function flag(n){return FLAGS[n]||'🏳️'}
 
 let editingMatch=null;
-function openScoreModal(m){editingMatch=m;const r=getResult(m);document.getElementById('modalHome').textContent=flag(m.home)+' '+m.home;document.getElementById('modalAway').textContent=m.away+' '+flag(m.away);document.getElementById('modalMatchInfo').textContent=m.grp+'组 · 第'+m.r+'轮 · '+m.bjt;document.getElementById('modalHomeScore').value=r?r[0]:0;document.getElementById('modalAwayScore').value=r?r[1]:0;document.getElementById('scoreModal').style.display='flex';setTimeout(()=>document.getElementById('modalHomeScore').focus(),100);}
+function openScoreModal(m){editingMatch=m;const r=getResult(m);document.getElementById('modalHome').textContent='🏠 '+flag(m.home)+' '+m.home+'（主队）';document.getElementById('modalAway').textContent='✈️ '+m.away+'（客队） '+flag(m.away);document.getElementById('modalMatchInfo').textContent=m.grp+'组 · 第'+m.r+'轮 · '+m.bjt;document.getElementById('modalHomeScore').value=r?r[0]:0;document.getElementById('modalAwayScore').value=r?r[1]:0;document.getElementById('scoreModal').style.display='flex';setTimeout(()=>document.getElementById('modalHomeScore').focus(),100);}
 function closeModal(){document.getElementById('scoreModal').style.display='none';editingMatch=null}
 function saveResult(){if(!editingMatch)return;const h=parseInt(document.getElementById('modalHomeScore').value)||0;const a=parseInt(document.getElementById('modalAwayScore').value)||0;setResult(editingMatch,h,a);closeModal();renderAll();}
 function clearResult(){if(!editingMatch)return;clearResultKey(editingMatch);closeModal();renderAll();}
@@ -508,7 +508,7 @@ function renderDayTabs(){
 
 function renderAnalysis(a){
   if(!a)return'';
-  let html='<div class="analysis"><div style="font-size:10px;color:#fbbf24;margin-bottom:4px">📊 四层特征分析</div>';
+  let html='<div class="analysis"><div style="font-size:10px;color:#fbbf24;margin-bottom:4px">📊 四层特征分析（🏠主队 vs ✈️客队）</div>';
   // T1
   html+=`<div style="margin-bottom:4px"><span class="tier-tag t1">T1核心</span><span style="font-size:8px;color:#64748b">xG/ELO/PPDA/射门/扑救/赔率 (权重40%)</span></div>`;
   html+=`<div class="factor"><span class="factor-label">综合T1</span><span style="color:#22c55e">${a.hT1}</span> vs <span style="color:#94a3b8">${a.aT1}</span></div>`;
@@ -545,15 +545,15 @@ function showDay(d){
     if(r){
       html+=`<div class="card" style="opacity:0.85;cursor:pointer" onclick="openScoreModal(SCHEDULE.find(x=>x.home==='${m.home}'&&x.away==='${m.away}'))">
         <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:#fbbf24">${m.grp}组·第${m.r}轮</span><span style="font-size:9px;color:#64748b">${m.bjt}</span></div>
-        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}</div><div class="score-box">${r[0]}-${r[1]}</div><div class="team" style="color:#94a3b8">${m.away}</div><div class="flag">${flag(m.away)}</div></div>
+        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role">🏠 主队</span></div><div class="score-box">${r[0]}-${r[1]}</div><div class="team" style="color:#94a3b8">${m.away}<span class="role">✈️ 客队</span></div><div class="flag">${flag(m.away)}</div></div>
         <span class="result-tag">已结束</span></div>`;
     }else{
       const pred=predict(m.home,m.away);
       const a=pred.analysis;
       html+=`<div class="card" style="cursor:pointer" onclick="openScoreModal(SCHEDULE.find(x=>x.home==='${m.home}'&&x.away==='${m.away}'))">
         <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:#fbbf24">${m.grp}组·第${m.r}轮</span><span style="font-size:9px;color:#64748b">${m.bjt}</span></div>
-        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role">${a?Math.round(a.hTotal):'?'}分</span></div><div class="vs">VS</div><div class="team" style="color:#94a3b8">${m.away}<span class="role">${a?Math.round(a.aTotal):'?'}分</span></div><div class="flag">${flag(m.away)}</div></div>
-        <div style="font-size:9px;color:#64748b;margin:2px 0">AI多因子预测比分</div><div class="preds">`;
+        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role">🏠 主队 · ${a?Math.round(a.hTotal):'?'}分</span></div><div class="vs">VS</div><div class="team" style="color:#94a3b8">${m.away}<span class="role">✈️ 客队 · ${a?Math.round(a.aTotal):'?'}分</span></div><div class="flag">${flag(m.away)}</div></div>
+        <div style="font-size:9px;color:#64748b;margin:2px 0">AI多因子预测比分（主队在前）</div><div class="preds">`;
       for(const p of pred.scores)html+=`<div class="pred"><div class="s">${p.score}</div><div class="p">${p.prob}%</div><div class="bar"><div class="bar-fill" style="width:${p.prob}%"></div></div></div>`;
       html+=`</div><div class="wdl"><span>${m.home}胜 ${pred.hWin}%</span><span>平 ${pred.draw}%</span><span>${m.away}胜 ${pred.aWin}%</span></div>`;
       html+=renderAnalysis(a);
