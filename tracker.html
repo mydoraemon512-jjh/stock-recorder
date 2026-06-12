@@ -44,7 +44,9 @@ input[type=file]{display:none}
 
 <script>
 let batches=[],activeIdx=-1;
-const CLOUD='https://jsonblob.com/api/jsonBlob/019eb9f3-18e4-78b0-8370-f8a39ddbb9db';
+let TOKEN=localStorage.getItem('gh_tok')||'';
+const API='https://api.github.com/repos/mydoraemon512-jjh/stock-recorder/contents/batches.json';
+const CLOUD='https://mydoraemon512-jjh.github.io/stock-recorder/batches.json';
 async function loadData(){
   try{const r=await fetch(CLOUD+'?t='+Date.now());if(r.ok){const d=await r.json();if(d&&d.length>0){batches=d;saveLocal();renderTabs();renderBatch();return}}}catch(e){}
   try{batches=JSON.parse(localStorage.getItem('img_batches')||'[]')}catch(e){batches=[]}
@@ -52,7 +54,14 @@ async function loadData(){
 }
 function saveLocal(){localStorage.setItem('img_batches',JSON.stringify(batches))}
 async function saveCloud(){
-  try{await fetch(CLOUD,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(batches)});document.getElementById('uploadStatus').textContent+=' ☁️已同步'}catch(e){}
+  if(!TOKEN){TOKEN=prompt('首次同步，请输入GitHub Token：\n（只需一次，之后自动同步）');if(!TOKEN)return;localStorage.setItem('gh_tok',TOKEN)}
+  try{
+    let sha='';try{const r=await fetch(API,{headers:{Authorization:'Bearer '+TOKEN}});if(r.ok){const d=await r.json();sha=d.sha}}catch(e){}
+    const body={message:'📊 同步追踪数据',content:btoa(unescape(encodeURIComponent(JSON.stringify(batches))))};
+    if(sha)body.sha=sha;
+    await fetch(API,{method:'PUT',headers:{Authorization:'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    document.getElementById('uploadStatus').textContent+=' ☁️已同步';
+  }catch(e){}
 }
 loadData();
 
