@@ -837,8 +837,11 @@ const INJURY_WORDS=['injury','injured','ACL','fracture','out of World Cup','doub
 
 const EN_CN={Argentina:'阿根廷',Brazil:'巴西',Germany:'德国',France:'法国',England:'英格兰',Spain:'西班牙',Portugal:'葡萄牙',Netherlands:'荷兰',Italy:'意大利',Croatia:'克罗地亚',Belgium:'比利时',Uruguay:'乌拉圭',Mexico:'墨西哥',USA:'美国',Japan:'日本',Korea:'韩国',Morocco:'摩洛哥',Colombia:'哥伦比亚',Ecuador:'厄瓜多尔',Norway:'挪威'};
 
+// 舆情存储：存每个队最近的新闻标题（最多5条）
+var NEWS_FEED={};
+
 async function fetchNews(){
-  console.log('📰 舆情抓取开始...');
+  console.log('📰 舆情抓取...');
   for(const en of NEWS_TEAMS){
     try{
       const q=encodeURIComponent(en+' World Cup 2026');
@@ -849,31 +852,36 @@ async function fetchNews(){
       const posts=(data.data&&data.data.children)||[];
       if(posts.length===0)continue;
 
-      let sentScore=0,injuryCount=0,disciplineChange=0;
+      const cn=EN_CN[en];if(!cn||!T[cn])continue;
+      var headlines=[];let sentScore=0,injuryCount=0,disciplineChange=0;
       for(const p of posts){
-        const title=(p.data.title||'').toLowerCase();
+        const title=p.data.title||'';
+        const titleLow=title.toLowerCase();
         const ups=p.data.ups||0;
-        const weight=Math.min(3,1+ups*0.01); // 高赞加权
+        const weight=Math.min(3,1+ups*0.01);
 
-        // 情感分析
+        // 存标题
+        var emoji='➖';var label='';
         let pos=0,neg=0,inj=0;
-        for(const w of SENT_POS){if(title.includes(w))pos++}
-        for(const w of SENT_NEG){if(title.includes(w))neg++}
-        for(const w of INJURY_WORDS){if(title.includes(w))inj++}
+        for(const w of SENT_POS){if(titleLow.includes(w))pos++}
+        for(const w of SENT_NEG){if(titleLow.includes(w))neg++}
+        for(const w of INJURY_WORDS){if(titleLow.includes(w)){inj++;label='🏥'}}
+        if(pos>neg){emoji='📈'}else if(neg>pos){emoji='📉'}
+        if(ups>50)emoji='🔥'+emoji;
+        headlines.push({t:title,e:emoji,l:label,u:ups});
 
         sentScore+=(pos-neg)*weight;
         injuryCount+=inj;
-        // 纪律相关（队内冲突、红牌等）
-        if(title.includes('red card')||title.includes('sent off')||title.includes('fight')||title.includes('rift'))disciplineChange-=1;
+        if(titleLow.includes('red card')||titleLow.includes('sent off')||titleLow.includes('fight'))disciplineChange-=1;
       }
-
-      // 更新TEAMS
-      const cn=EN_CN[en];if(!cn||!T[cn])continue;
+      // 保存标题到全局NEWS_FEED
+      NEWS_FEED[cn]=headlines.slice(0,5);
+      // 更新TEAMS评分
       const oldNews=T[cn].news||0;
       T[cn].news=Math.max(-10,Math.min(10,oldNews+Math.round(sentScore*0.5)));
       if(injuryCount>0)T[cn].inj=Math.min(5,(T[cn].inj||0)+Math.min(3,injuryCount));
       if(disciplineChange<0)T[cn].discipline=Math.max(1,(T[cn].discipline||5)+disciplineChange);
-    }catch(e){/* skip team on error */}
+    }catch(e){}
   }
   console.log('📰 舆情更新完成');
   updateStatus();
@@ -891,7 +899,7 @@ function renderDayTabs(){
   }).join('');
 }
 
-function renderAnalysis(a){
+function renderAnalysis(a,home,away){
   if(!a)return'';
   let html='<div class="analysis"><div style="font-size:10px;color:#fbbf24;margin-bottom:4px">📊 四层特征分析</div>';
   // T1
@@ -924,6 +932,15 @@ function renderAnalysis(a){
   if(a.wNote)html+=`<div style="font-size:8px;color:#60a5fa;margin-top:2px">${a.wNote}</div>`;
   if(a.tacticsNote)html+=`<div style="font-size:8px;color:#fbbf24;margin-top:1px">⚔️ ${a.tacticsNote}</div>`;
   if(a.nH2H)html+=`<div style="font-size:8px;color:#64748b;margin-top:2px">📝 ${a.nH2H}</div>`;
+  // 实时舆情
+  var hNews=NEWS_FEED[home]||[],aNews=NEWS_FEED[away]||[];
+  if(hNews.length||aNews.length){
+    html+='<div style="margin-top:4px;font-size:8px;color:#64748b">📰 实时舆情</div>';
+    if(hNews.length)html+='<div style="font-size:7px;color:#22c55e;margin:2px 0">'+home+'：</div>';
+    for(var ni=0;ni<Math.min(hNews.length,3);ni++)html+='<div style="font-size:7px;color:#94a3b8;padding:1px 0">'+hNews[ni].e+' '+hNews[ni].t.substring(0,60)+(hNews[ni].u>20?' 🔥':'')+'</div>';
+    if(aNews.length)html+='<div style="font-size:7px;color:#60a5fa;margin:2px 0">'+away+'：</div>';
+    for(var nj=0;nj<Math.min(aNews.length,3);nj++)html+='<div style="font-size:7px;color:#94a3b8;padding:1px 0">'+aNews[nj].e+' '+aNews[nj].t.substring(0,60)+(aNews[nj].u>20?' 🔥':'')+'</div>';
+  }
   html+='</div>';
   return html;
 }
@@ -958,7 +975,7 @@ function showDay(d){
         <div style="font-size:9px;color:#64748b;margin:2px 0">AI预测比分（左队在前）</div><div class="preds">`;
       for(const p of pred.scores){const parts=p.score.split('-');html+=`<div class="pred"><div class="s"><span style="color:#fbbf24">${parts[0]}</span>-<span style="color:#fbbf24">${parts[1]}</span></div><div class="p">${p.prob}%</div><div class="bar"><div class="bar-fill" style="width:${p.prob}%"></div></div></div>`;}
       html+=`</div><div class="wdl"><span>${m.home}胜 ${pred.hWin}%</span><span>平 ${pred.draw}%</span><span>${m.away}胜 ${pred.aWin}%</span></div>`;
-      html+=renderAnalysis(a)+`</div>`;
+      html+=renderAnalysis(a,m.home,m.away)+`</div>`;
     }
   }
   document.getElementById('matchList').innerHTML=html||'<div style="text-align:center;padding:40px;color:#64748b">今日无比赛</div>';
@@ -1039,6 +1056,7 @@ function updateStatus(){const t=Object.keys(RESULTS).length;document.getElementB
 
 renderDayTabs();showDay(0);updateStatus();
 startAutoFetch();
+fetchNews(); // 立即抓取舆情
 // 后台预加载所有场馆天气
 loadWeatherForMatches(SCHEDULE).then(function(){console.log('天气加载完成')});
 </script>
