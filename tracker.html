@@ -56,12 +56,14 @@ function saveLocal(){localStorage.setItem('img_batches',JSON.stringify(batches))
 async function saveCloud(){
   if(!TOKEN){TOKEN=prompt('首次同步，请输入GitHub Token：\n（只需一次，之后自动同步）');if(!TOKEN)return;localStorage.setItem('gh_tok',TOKEN)}
   try{
+    const json=JSON.stringify(batches);
+    const base64=btoa(String.fromCharCode(...new TextEncoder().encode(json)));
     let sha='';try{const r=await fetch(API,{headers:{Authorization:'Bearer '+TOKEN}});if(r.ok){const d=await r.json();sha=d.sha}}catch(e){}
-    const body={message:'📊 同步追踪数据',content:btoa(unescape(encodeURIComponent(JSON.stringify(batches))))};
+    const body={message:'📊 同步追踪数据',content:base64};
     if(sha)body.sha=sha;
-    await fetch(API,{method:'PUT',headers:{Authorization:'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(body)});
-    document.getElementById('uploadStatus').textContent+=' ☁️已同步';
-  }catch(e){}
+    const r=await fetch(API,{method:'PUT',headers:{Authorization:'Bearer '+TOKEN,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.ok){document.getElementById('uploadStatus').textContent+=' ☁️已同步'}else{throw new Error('fail')}
+  }catch(e){document.getElementById('uploadStatus').textContent+=' ⚠️同步失败';}
 }
 loadData();
 
