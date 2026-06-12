@@ -32,7 +32,9 @@ input[type=file]{display:none}
   <div class="card">
     <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
     <button class="btn btn-blue" onclick="document.getElementById('fileInput').click()">📤 上传图片</button>
-    <span style="font-size:11px;color:#64748b;margin-left:8px">支持截图中的股票列表</span>
+    <button class="btn btn-gray" id="syncBtn" onclick="syncToCloud()">☁️ 同步云端</button>
+    <span id="syncStatus" style="font-size:10px;color:#64748b;margin-left:8px"></span>
+    <span style="font-size:10px;color:#475569;display:block;margin-top:4px">💡 电脑上传 → 点同步 → 手机打开网页自动加载</span>
     <img id="preview">
     <div id="uploadStatus" style="font-size:12px;color:#64748b;margin-top:6px"></div>
   </div>
@@ -43,9 +45,40 @@ input[type=file]{display:none}
 
 <script>
 let batches=[],activeIdx=-1;
-(function load(){try{batches=JSON.parse(localStorage.getItem('img_batches')||'[]')}catch(e){batches=[]};if(batches.length>0){activeIdx=0;renderTabs();renderBatch()}autoUpdate();preloadOCR()})();
 function preloadOCR(){if(typeof Tesseract==='undefined'){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=()=>{Tesseract.recognize(document.createElement('canvas'),'chi_sim').catch(()=>{})};document.head.appendChild(s)}}
 function save(){localStorage.setItem('img_batches',JSON.stringify(batches))}
+
+// 云端同步
+let ghToken=localStorage.getItem('gh_token')||'';
+const REPO='mydoraemon512-jjh/stock-recorder';
+const CLOUD_URL='https://mydoraemon512-jjh.github.io/stock-recorder/batches.json';
+
+async function loadFromCloud(){
+  try{const r=await fetch(CLOUD_URL+'?t='+Date.now());if(r.ok){const d=await r.json();if(d&&d.length){batches=d;save();renderTabs();renderBatch();document.getElementById('syncStatus').textContent='✅ 已加载云端数据';return true}}}catch(e){}
+  return false;
+}
+
+async function syncToCloud(){
+  if(!ghToken){ghToken=prompt('请输入GitHub Token（只需一次）：\n前往 https://github.com/settings/tokens 创建，勾选repo权限');if(!ghToken)return;localStorage.setItem('gh_token',ghToken)}
+  document.getElementById('syncStatus').textContent='⏳ 同步中...';
+  try{
+    // 获取当前文件SHA（如果存在）
+    let sha='';
+    try{const r=await fetch('https://api.github.com/repos/'+REPO+'/contents/batches.json',{headers:{Authorization:'Bearer '+ghToken}});if(r.ok){const d=await r.json();sha=d.sha}}catch(e){}
+    // 上传
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify(batches))));
+    const body={message:'📊 更新追踪数据',content:content};
+    if(sha)body.sha=sha;
+    const r=await fetch('https://api.github.com/repos/'+REPO+'/contents/batches.json',{method:'PUT',headers:{Authorization:'Bearer '+ghToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.ok){document.getElementById('syncStatus').textContent='✅ 已同步！手机刷新网页即可';setTimeout(()=>document.getElementById('syncStatus').textContent='',5000)}
+    else{const d=await r.json();throw new Error(d.message||'fail')}
+  }catch(e){document.getElementById('syncStatus').textContent='❌ 同步失败: '+e.message;ghToken='';localStorage.removeItem('gh_token')}
+}
+
+// 启动时从云端加载
+(function init(){
+  loadFromCloud().then(ok=>{if(!ok){try{batches=JSON.parse(localStorage.getItem('img_batches')||'[]')}catch(e){batches=[]}};if(batches.length>0){activeIdx=0;renderTabs();renderBatch()}autoUpdate();preloadOCR()});
+})();
 
 async function handleFile(e){
   const file=e.target.files[0];if(!file)return;
