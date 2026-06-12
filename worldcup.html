@@ -933,14 +933,14 @@ function renderAnalysis(a,home,away){
   if(a.tacticsNote)html+=`<div style="font-size:8px;color:#fbbf24;margin-top:1px">⚔️ ${a.tacticsNote}</div>`;
   if(a.nH2H)html+=`<div style="font-size:8px;color:#64748b;margin-top:2px">📝 ${a.nH2H}</div>`;
   // 实时舆情
+  html+='<div style="margin-top:4px;font-size:8px;color:#64748b">📰 实时舆情 <span style="color:#334155">(Reddit+腾讯体育)</span></div>';
   var hNews=NEWS_FEED[home]||[],aNews=NEWS_FEED[away]||[];
-  if(hNews.length||aNews.length){
-    html+='<div style="margin-top:4px;font-size:8px;color:#64748b">📰 实时舆情</div>';
-    if(hNews.length)html+='<div style="font-size:7px;color:#22c55e;margin:2px 0">'+home+'：</div>';
-    for(var ni=0;ni<Math.min(hNews.length,3);ni++)html+='<div style="font-size:7px;color:#94a3b8;padding:1px 0">'+hNews[ni].e+' '+hNews[ni].t.substring(0,60)+(hNews[ni].u>20?' 🔥':'')+'</div>';
-    if(aNews.length)html+='<div style="font-size:7px;color:#60a5fa;margin:2px 0">'+away+'：</div>';
-    for(var nj=0;nj<Math.min(aNews.length,3);nj++)html+='<div style="font-size:7px;color:#94a3b8;padding:1px 0">'+aNews[nj].e+' '+aNews[nj].t.substring(0,60)+(aNews[nj].u>20?' 🔥':'')+'</div>';
-  }
+  if(hNews.length){html+='<div style="font-size:7px;color:#22c55e;margin:2px 0">'+home+'：</div>';
+    for(var ni=0;ni<Math.min(hNews.length,3);ni++)html+='<div style="font-size:7px;color:#94a3b8;padding:1px 0">'+hNews[ni].e+' '+hNews[ni].t.substring(0,60)+(hNews[ni].u>20?' 🔥':'')+'</div>';}
+  else{html+='<div style="font-size:7px;color:#334155;margin:2px 0">'+home+'：暂无最新舆情 · 访问腾讯体育 worldcup.qq.com</div>';}
+  if(aNews.length){html+='<div style="font-size:7px;color:#60a5fa;margin:2px 0">'+away+'：</div>';
+    for(var nj=0;nj<Math.min(aNews.length,3);nj++)html+='<div style="font-size:7px;color:#94a3b8;padding:1px 0">'+aNews[nj].e+' '+aNews[nj].t.substring(0,60)+(aNews[nj].u>20?' 🔥':'')+'</div>';}
+  else{html+='<div style="font-size:7px;color:#334155;margin:2px 0">'+away+'：暂无最新舆情 · 访问腾讯体育 worldcup.qq.com</div>';}
   html+='</div>';
   return html;
 }
