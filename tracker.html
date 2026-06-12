@@ -136,9 +136,11 @@ function renderBatch(){
 function downloadBatch(i){
   const b=batches[i];
   b.downloads.push(new Date().toISOString());saveLocal();saveCloud();
-  const dates=[...new Set(b.stocks.flatMap(s=>s.records.map(r=>r.date)))].sort();
-  let csv='创建时间,'+new Date(b.created).toLocaleString('zh-CN')+'\n下载时间,'+new Date().toLocaleString('zh-CN')+'\n\n代码,名称,'+dates.join(',')+'\n';
-  for(const s of b.stocks){csv+=s.code+','+s.name+','+dates.map(d=>{const r=s.records.find(x=>x.date===d);return r?r.close:'-'}).join(',')+'\n'}
+  let csv='创建时间,'+new Date(b.created).toLocaleString('zh-CN')+'\n下载时间,'+new Date().toLocaleString('zh-CN')+'\n\n代码,名称,日期,时段,记录时间,开盘价,收盘价,涨跌幅\n';
+  for(const s of b.stocks){
+    const recs=[...s.records].sort((a,b)=>a.date.localeCompare(b.date)||(a.slot||'').localeCompare(b.slot||''));
+    for(const r of recs){csv+=s.code+','+s.name+','+r.date+','+(r.slot||'--')+','+(r.time||'--')+','+(r.open?.toFixed(2)||'')+','+(r.close?.toFixed(2)||'')+','+(r.chg||'0')+'%\n'}
+  }
   const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=b.label.replace(/\s/g,'_')+'.csv';a.click();
   renderBatch();
