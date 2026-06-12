@@ -74,7 +74,7 @@ h3{font-size:12px;color:#fbbf24;margin-bottom:4px}
 </head>
 <body>
 <div class="app">
-  <h1>🏆 2026世界杯 AI预测 <span style="font-size:8px;color:#334155">v3.0</span> <a href="index.html" style="font-size:9px;color:#64748b;text-decoration:none;border:1px solid #334155;padding:2px 6px;border-radius:8px;margin-left:6px">📊 每日荐股</a></h1>
+  <h1>🏆 2026世界杯 AI预测 <span style="font-size:8px;color:#334155">v3.1</span> <a href="index.html" style="font-size:9px;color:#64748b;text-decoration:none;border:1px solid #334155;padding:2px 6px;border-radius:8px;margin-left:6px">📊 每日荐股</a></h1>
   <div class="sub" id="statusBar">ELO+xG+宿敌+韧性+翻盘+舆情 | ESPN实时 | 数据加载中...</div>
   <div class="tabs" id="mainTabs">
     <button class="tab active" onclick="switchView('schedule')">📅 赛程</button>
@@ -916,8 +916,6 @@ async function loadWeatherForMatches(matches){
 function showDay(d){
   currentDay=d;renderDayTabs();
   const matches=SCHEDULE.filter(m=>m.d===d);
-  // 异步加载天气（不阻塞渲染）
-  loadWeatherForMatches(matches).then(()=>{if(currentDay===d)showDay(d)});
   let html='';
   for(const m of matches){
     const r=getResult(m);
@@ -1018,6 +1016,8 @@ function renderAll(){renderDayTabs();if(currentView==='schedule')showDay(current
 function updateStatus(){const t=Object.keys(RESULTS).length;document.getElementById('statusBar').innerHTML=`全因子模型(含天气/海拔/战术/宿敌) | ESPN实时 | ${t}/${SCHEDULE.length}场 <span class="auto-refresh">🔄60s</span>`;}
 
 renderDayTabs();showDay(0);updateStatus();
+// 后台加载所有比赛天气
+(function(){const all=SCHEDULE;loadWeatherForMatches(all)})();
 startAutoFetch();
 </script>
 </body>
