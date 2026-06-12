@@ -918,8 +918,6 @@ async function loadWeatherForMatches(matches){
 function showDay(d){
   currentDay=d;renderDayTabs();
   const matches=SCHEDULE.filter(m=>m.d===d);
-  // 异步加载天气（不阻塞渲染）
-  loadWeatherForMatches(matches).then(()=>{if(currentDay===d)showDay(d)});
   let html='';
   for(const m of matches){
     const r=getResult(m);
