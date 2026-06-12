@@ -32,10 +32,7 @@ input[type=file]{display:none}
   <div class="card">
     <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
     <button class="btn btn-blue" onclick="document.getElementById('fileInput').click()">📤 上传图片</button>
-    <button class="btn btn-gray" onclick="exportAll()">💾 导出JSON</button>
-    <input type="file" id="importFile" accept=".json" onchange="importAll(event)" style="display:none">
-    <button class="btn btn-gray" onclick="document.getElementById('importFile').click()">📥 导入JSON</button>
-    <span style="font-size:10px;color:#64748b;display:block;margin-top:4px">💡 电脑导出JSON → 隔空投送手机 → 手机导入 → 两端同步</span>
+    <span style="font-size:11px;color:#64748b;margin-left:8px">支持截图中的股票列表</span>
     <img id="preview">
     <div id="uploadStatus" style="font-size:12px;color:#64748b;margin-top:6px"></div>
   </div>
@@ -46,20 +43,8 @@ input[type=file]{display:none}
 
 <script>
 let batches=[],activeIdx=-1;
-function preloadOCR(){if(typeof Tesseract==='undefined'){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=()=>{Tesseract.recognize(document.createElement('canvas'),'chi_sim').catch(()=>{})};document.head.appendChild(s)}}
+(function load(){try{batches=JSON.parse(localStorage.getItem('img_batches')||'[]')}catch(e){batches=[]};if(batches.length>0){activeIdx=0;renderTabs();renderBatch()}autoUpdate()})();
 function save(){localStorage.setItem('img_batches',JSON.stringify(batches))}
-
-// 导出/导入JSON
-function exportAll(){const blob=new Blob([JSON.stringify(batches)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='股票追踪备份_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
-function importAll(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);if(confirm('导入 '+d.length+' 个批次？将替换当前数据')){batches=d;save();activeIdx=0;renderTabs();renderBatch();alert('✅ 导入成功！')}}catch(ex){alert('❌ 文件格式错误')}};reader.readAsText(file)}
-
-// 启动：优先加载云端数据
-async function initLoad(){
-  try{const r=await fetch('https://mydoraemon512-jjh.github.io/stock-recorder/batches.json?t='+Date.now());if(r.ok){const d=await r.json();if(d&&d.length>0){batches=d;save();document.getElementById('batchContent').innerHTML='<div style="text-align:center;padding:10px;color:#4ade80;font-size:12px">☁️ 已加载云端追踪数据</div>'}}}
-  }catch(e){try{batches=JSON.parse(localStorage.getItem('img_batches')||'[]')}catch(e2){batches=[]}}
-  if(batches.length>0){activeIdx=0;renderTabs();renderBatch()}autoUpdate();preloadOCR();
-}
-initLoad();
 
 async function handleFile(e){
   const file=e.target.files[0];if(!file)return;
@@ -68,9 +53,9 @@ async function handleFile(e){
 
   let codes=[];
   try{
-    while(typeof Tesseract==='undefined'){await new Promise(r=>setTimeout(r,300))}
-    const bmp=await createImageBitmap(file);const scale=Math.min(1,800/bmp.width);const c=document.createElement('canvas');const x=c.getContext('2d');c.width=bmp.width*scale;c.height=bmp.height*scale;x.drawImage(bmp,0,0,c.width,c.height);
-    const{data:{text}}=await Tesseract.recognize(c,'chi_sim',{logger:m=>{if(m.status==='recognizing text')document.getElementById('uploadStatus').textContent='⏳ OCR '+Math.round(m.progress*100)+'%'}});
+    if(typeof Tesseract==='undefined'){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';await new Promise(r=>{s.onload=r;document.head.appendChild(s)})}
+    const bmp=await createImageBitmap(file);const c=document.createElement('canvas');const x=c.getContext('2d');c.width=bmp.width;c.height=bmp.height;x.drawImage(bmp,0,0);
+    const{data:{text}}=await Tesseract.recognize(c,'chi_sim+eng');
     codes=[...new Set((text.match(/\b[0368]\d{5}\b/g)||[]).filter(c=>c[0]!=='0'||c>'000900'))];
   }catch(e){document.getElementById('uploadStatus').textContent='❌ OCR失败，请重试';return}
 
@@ -82,24 +67,11 @@ async function handleFile(e){
     for(const l of t.split(';')){if(!l.includes('="'))continue;const m=l.match(/="(.+)"/);if(!m)continue;const f=m[1].split('~');if(f.length<50)continue;stocks.push({code:f[2],name:f[1],open:+f[5]||0,close:+f[3]||0,prev:+f[4]||0})}
   }catch(e){}
 
-  // 从文件读取截图时间
-  let photoDate=new Date();
-  try{
-    // 尝试读取EXIF
-    const arrayBuffer=await file.arrayBuffer();
-    const dv=new DataView(arrayBuffer);
-    if(dv.getUint16(0,false)===0xFFD8){ // JPEG
-      let offset=2;
-      while(offset<dv.byteLength){if(dv.getUint16(offset,false)===0xFFE1){const exifStart=offset+4;const exifStr=String.fromCharCode(...new Uint8Array(arrayBuffer.slice(exifStart,exifStart+100)));const dateMatch=exifStr.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);if(dateMatch){photoDate=new Date(+dateMatch[1],+dateMatch[2]-1,+dateMatch[3],+dateMatch[4],+dateMatch[5],+dateMatch[6]);break}}offset+=2+dv.getUint16(offset+2,false)}}else{photoDate=new Date(file.lastModified)}
-  }catch(e){photoDate=new Date(file.lastModified)}
-  const today=photoDate.toISOString().slice(0,10);
-  const time=String(photoDate.getHours()).padStart(2,'0')+':'+String(photoDate.getMinutes()).padStart(2,'0');
+  const now=new Date();const today=now.toISOString().slice(0,10);
+  const time=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   const label=today+' '+time;
 
-  // 生成缩略图
-  let thumb='';
-  try{const tc=document.createElement('canvas');const tx=tc.getContext('2d');const scale=Math.min(1,300/img.naturalWidth);tc.width=img.naturalWidth*scale;tc.height=img.naturalHeight*scale;tx.drawImage(img,0,0,tc.width,tc.height);thumb=tc.toDataURL('image/jpeg',0.6)}catch(e){}
-  batches.unshift({id:Date.now(),date:today,time:time,label:label,fileName:file.name||'截图',codes:codes,thumb:thumb,created:now.toISOString(),downloads:[],stocks:stocks.map(s=>({...s,records:[{date:today,time:time,open:s.open,close:s.close,chg:((s.close-s.prev)/s.prev*100).toFixed(1)}]}))});
+  batches.unshift({id:Date.now(),date:today,time:time,label:label,codes:codes,created:now.toISOString(),downloads:[],stocks:stocks.map(s=>({...s,records:[{date:today,time:time,open:s.open,close:s.close,chg:((s.close-s.prev)/s.prev*100).toFixed(1)}]}))});
   save();activeIdx=0;renderTabs();renderBatch();
   document.getElementById('uploadStatus').textContent='✅ 识别 '+codes.length+' 只股票，已创建批次';document.getElementById('fileInput').value='';
 }
@@ -130,8 +102,7 @@ function renderBatch(){
   const lastDL=b.downloads.length>0?new Date(b.downloads[b.downloads.length-1]).toLocaleString('zh-CN'):'未下载';
 
   let html='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><span style="font-weight:700;color:#fbbf24;font-size:15px">📸 '+b.label+'</span></div><button class="btn btn-green" onclick="downloadBatch('+activeIdx+')">📥 下载Excel</button></div>';
-  html+='<div class="meta">📅 创建时间：'+created+' | 🖼️ 截图：'+ (b.fileName||'未知')+'</div>';
-  if(b.thumb)html+='<img src="'+b.thumb+'" style="max-width:200px;max-height:120px;border-radius:8px;margin:6px 0;display:block">';
+  html+='<div class="meta">📅 创建时间：'+created+'</div>';
   html+='<div class="meta">📥 上次下载：'+lastDL+' | 📊 '+b.codes.length+'只股票 · 已追踪'+days+'天 · '+up+'涨'+down+'跌</div>';
   html+='<div class="stock-row header" style="margin-top:8px"><span>代码</span><span>名称</span><span>开盘</span><span>收盘</span><span>涨跌</span></div>';
   for(const s of b.stocks){const last=s.records[s.records.length-1];const chg=last?+last.chg:0;html+='<div class="stock-row"><span style="font-family:monospace">'+s.code+'</span><span>'+ (s.name||'-')+'</span><span>'+(last?.open?.toFixed(2)||'-')+'</span><span>'+(last?.close?.toFixed(2)||'-')+'</span><span class="'+(chg>0?'up':'down')+'">'+(chg>0?'+':'')+(last?.chg||'0')+'%</span></div>'}
@@ -147,10 +118,8 @@ function downloadBatch(i){
   const b=batches[i];
   b.downloads.push(new Date().toISOString());save();
   const dates=[...new Set(b.stocks.flatMap(s=>s.records.map(r=>r.date)))].sort();
-  let csv='截图文件,'+(b.fileName||'未知')+'\n截图时间,'+new Date(b.created).toLocaleString('zh-CN')+'\n下载时间,'+new Date().toLocaleString('zh-CN')+'\n股票数量,'+b.codes.length+'只\n\n代码,名称';
-  for(const d of dates){csv+=','+d+'开盘,'+d+'收盘,'+d+'涨跌'}
-  csv+='\n';
-  for(const s of b.stocks){csv+=s.code+','+s.name;for(const d of dates){const r=s.records.find(x=>x.date===d);csv+=','+(r?r.open.toFixed(2):'-')+','+(r?r.close.toFixed(2):'-')+','+(r?r.chg+'%':'-')}csv+='\n'}
+  let csv='创建时间,'+new Date(b.created).toLocaleString('zh-CN')+'\n下载时间,'+new Date().toLocaleString('zh-CN')+'\n\n代码,名称,'+dates.join(',')+'\n';
+  for(const s of b.stocks){csv+=s.code+','+s.name+','+dates.map(d=>{const r=s.records.find(x=>x.date===d);return r?r.close:'-'}).join(',')+'\n'}
   const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=b.label.replace(/\s/g,'_')+'.csv';a.click();
   renderBatch();
