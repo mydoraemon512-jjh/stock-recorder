@@ -105,19 +105,26 @@ async function autoUpdate(){
   try{const r=await fetch('https://qt.gtimg.cn/q='+qt);const b=await r.arrayBuffer();const t=new TextDecoder('gbk').decode(b);
     for(const l of t.split(';')){if(!l.includes('="'))continue;const m=l.match(/="(.+)"/);if(!m)continue;const f=m[1].split('~');if(f.length<50)continue;pm[f[2]]={open:+f[5]||0,close:+f[3]||0,prev:+f[4]||0,name:f[1]}}
   }catch(e){}
-  const now=new Date();const today=now.toISOString().slice(0,10);const h=now.getHours(),m=now.getMinutes();
-  // 每天只在两个时段记录：9:30-10:00（开盘）和 15:00-15:30（收盘）
-  const isMorning=h===9&&m>=30||h===10&&m<1;const isClose=h===15&&m<30;
+  const now=new Date();const today=now.toISOString().slice(0,10);const h=now.getHours(),m=now.getMinutes(),s=now.getSeconds();
+  // 记录时段：开盘9:30-10:00，收盘15:00-15:30；尾盘14:57-15:05高频刷新
+  const isMorning=h===9&&m>=30||h===10&&m<1;
+  const isClose=h===15&&m<=30;
+  const isTail=(h===14&&m>=57)||(h===15&&m<=5); // 尾盘高频窗口
   let ch=false;
   for(const bt of batches){for(const s of bt.stocks){const p=pm[s.code];if(!p)continue;s.name=s.name||p.name;
-    // 实时更新当前价格到最新记录
-    const last=s.records[s.records.length-1];if(last&&last.date===today){last.close=p.close;last.chg=((p.close-p.prev)/p.prev*100).toFixed(1)}else if(last&&last.date!==today){s.records.push({date:today,time:now.toTimeString().slice(0,5),slot:'实时',open:p.open,close:p.close,chg:((p.close-p.prev)/p.prev*100).toFixed(1)})}
-    // 在记录时段创建正式记录
-    if(isMorning||isClose){const slot=isMorning?'开盘':'收盘';const exist=s.records.find(r=>r.date===today&&r.slot===slot);if(!exist){s.records.push({date:today,time:now.toTimeString().slice(0,5),slot:slot,open:p.open,close:p.close,chg:((p.close-p.prev)/p.prev*100).toFixed(1)});if(s.records.length>60)s.records=s.records.slice(-60)}}
+    // 始终更新最新价格
+    const last=s.records[s.records.length-1];
+    if(last&&last.date===today){last.close=p.close;last.chg=((p.close-p.prev)/p.prev*100).toFixed(1);last.time=now.toTimeString().slice(0,5)}
+    else if(last&&last.date!==today){s.records.push({date:today,time:now.toTimeString().slice(0,5),slot:'实时',open:p.open,close:p.close,chg:((p.close-p.prev)/p.prev*100).toFixed(1)})}
+    // 开盘/收盘时段：持续更新记录直到窗口结束（确保拿到准确价）
+    if(isMorning){let exist=s.records.find(r=>r.date===today&&r.slot==='开盘');if(!exist){s.records.push({date:today,time:now.toTimeString().slice(0,5),slot:'开盘',open:p.open,close:p.close,chg:((p.close-p.prev)/p.prev*100).toFixed(1)});if(s.records.length>60)s.records=s.records.slice(-60)}else{exist.open=p.open;exist.close=p.close;exist.chg=((p.close-p.prev)/p.prev*100).toFixed(1);exist.time=now.toTimeString().slice(0,5)}} // 持续更新开盘价
+    if(isClose){let exist=s.records.find(r=>r.date===today&&r.slot==='收盘');if(!exist){s.records.push({date:today,time:now.toTimeString().slice(0,5),slot:'收盘',open:p.open,close:p.close,chg:((p.close-p.prev)/p.prev*100).toFixed(1)});if(s.records.length>60)s.records=s.records.slice(-60)}else{exist.open=p.open;exist.close=p.close;exist.chg=((p.close-p.prev)/p.prev*100).toFixed(1);exist.time=now.toTimeString().slice(0,5)}} // 持续更新收盘价
     ch=true}}
   if(ch){saveLocal();if(activeIdx>=0)renderBatch()}
 }
-setInterval(autoUpdate,60000); // 每分钟检查一次
+setInterval(autoUpdate,60000); // 平时每分钟
+// 开盘9:25-9:35 + 尾盘14:57-15:05 每15秒高频刷新
+setInterval(function(){const n=new Date();const h=n.getHours(),m=n.getMinutes();if((h===9&&m>=25&&m<=35)||(h===14&&m>=57)||(h===15&&m<=5))autoUpdate()},15000);
 
 function renderTabs(){
   document.getElementById('tabs').innerHTML=batches.map((b,i)=>
@@ -176,7 +183,6 @@ function downloadBatch(i){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=b.label.replace(/\s/g,'_')+'.csv';a.click();
   renderBatch();
 }
-setInterval(autoUpdate,300000);
 </script>
 </body>
 </html>
