@@ -33,7 +33,7 @@ input[type=file]{display:none}
     <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
     <button class="btn btn-blue" onclick="document.getElementById('fileInput').click()">📤 上传图片</button>
     <span style="font-size:11px;color:#64748b;margin-left:8px">支持截图中的股票列表</span>
-    <button class="btn btn-gray" onclick="if(confirm('清除所有批次？')){batches=[];saveLocal();saveCloud();activeIdx=-1;renderTabs();document.getElementById('batchContent').innerHTML='<div style=text-align:center;padding:40px;color:#64748b>已清除</div>'}">🗑️ 清除</button>
+    <button class="btn btn-gray" onclick="clearAll()">🗑️ 清除</button>
     <img id="preview">
     <div id="uploadStatus" style="font-size:12px;color:#64748b;margin-top:6px"></div>
   </div>
@@ -52,6 +52,7 @@ async function loadData(){
   try{batches=JSON.parse(localStorage.getItem('img_batches')||'[]')}catch(e){batches=[]}
   if(batches.length>0){activeIdx=0;renderTabs();renderBatch()}autoUpdate();
 }
+function clearAll(){const pw=prompt('请输入清除密码：');if(pw==='900512'){batches=[];saveLocal();saveCloud();activeIdx=-1;renderTabs();document.getElementById('batchContent').innerHTML='<div style=text-align:center;padding:40px;color:#64748b>已清除</div>'}else if(pw){alert('❌ 密码错误')}}
 function saveLocal(){localStorage.setItem('img_batches',JSON.stringify(batches))}
 async function saveCloud(){
   if(!TOKEN){TOKEN=prompt('首次同步，请输入GitHub Token：\n（只需一次，之后自动同步）');if(!TOKEN)return;localStorage.setItem('gh_tok',TOKEN)}
