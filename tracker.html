@@ -42,20 +42,16 @@ input[type=file]{display:none}
 </div>
 
 <script>
-let batches=[],activeIdx=-1,cloudUrl=localStorage.getItem('img_cloud_url')||'';
+let batches=[],activeIdx=-1;
+const CLOUD='https://jsonblob.com/api/jsonBlob/019eb9f3-18e4-78b0-8370-f8a39ddbb9db';
 async function loadData(){
-  if(cloudUrl){try{const r=await fetch(cloudUrl+'?t='+Date.now());if(r.ok){const d=await r.json();if(d&&d.length){batches=d;saveLocal();renderTabs();renderBatch();return}}}catch(e){}}
+  try{const r=await fetch(CLOUD+'?t='+Date.now());if(r.ok){const d=await r.json();if(d&&d.length>0){batches=d;saveLocal();renderTabs();renderBatch();return}}}catch(e){}
   try{batches=JSON.parse(localStorage.getItem('img_batches')||'[]')}catch(e){batches=[]}
   if(batches.length>0){activeIdx=0;renderTabs();renderBatch()}autoUpdate();
 }
 function saveLocal(){localStorage.setItem('img_batches',JSON.stringify(batches))}
 async function saveCloud(){
-  try{
-    const body=JSON.stringify(batches);
-    if(cloudUrl){await fetch(cloudUrl,{method:'PUT',headers:{'Content-Type':'application/json'},body})}
-    else{const r=await fetch('https://jsonblob.com/api/jsonBlob',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body});const loc=r.headers.get('Location');if(loc){cloudUrl=loc;localStorage.setItem('img_cloud_url',cloudUrl)}}
-    document.getElementById('uploadStatus').textContent+=' ☁️已同步';
-  }catch(e){}
+  try{await fetch(CLOUD,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(batches)});document.getElementById('uploadStatus').textContent+=' ☁️已同步'}catch(e){}
 }
 loadData();
 
