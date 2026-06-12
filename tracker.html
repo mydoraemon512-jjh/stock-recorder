@@ -43,7 +43,8 @@ input[type=file]{display:none}
 
 <script>
 let batches=[],activeIdx=-1;
-(function load(){try{batches=JSON.parse(localStorage.getItem('img_batches')||'[]')}catch(e){batches=[]};if(batches.length>0){activeIdx=0;renderTabs();renderBatch()}autoUpdate()})();
+(function load(){try{batches=JSON.parse(localStorage.getItem('img_batches')||'[]')}catch(e){batches=[]};if(batches.length>0){activeIdx=0;renderTabs();renderBatch()}autoUpdate();preloadOCR()})();
+function preloadOCR(){if(typeof Tesseract==='undefined'){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=()=>{Tesseract.recognize(document.createElement('canvas'),'chi_sim').catch(()=>{})};document.head.appendChild(s)}}
 function save(){localStorage.setItem('img_batches',JSON.stringify(batches))}
 
 async function handleFile(e){
@@ -53,9 +54,9 @@ async function handleFile(e){
 
   let codes=[];
   try{
-    if(typeof Tesseract==='undefined'){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';await new Promise(r=>{s.onload=r;document.head.appendChild(s)})}
-    const bmp=await createImageBitmap(file);const c=document.createElement('canvas');const x=c.getContext('2d');c.width=bmp.width;c.height=bmp.height;x.drawImage(bmp,0,0);
-    const{data:{text}}=await Tesseract.recognize(c,'chi_sim+eng');
+    while(typeof Tesseract==='undefined'){await new Promise(r=>setTimeout(r,300))}
+    const bmp=await createImageBitmap(file);const scale=Math.min(1,800/bmp.width);const c=document.createElement('canvas');const x=c.getContext('2d');c.width=bmp.width*scale;c.height=bmp.height*scale;x.drawImage(bmp,0,0,c.width,c.height);
+    const{data:{text}}=await Tesseract.recognize(c,'chi_sim',{logger:m=>{if(m.status==='recognizing text')document.getElementById('uploadStatus').textContent='⏳ OCR '+Math.round(m.progress*100)+'%'}});
     codes=[...new Set((text.match(/\b[0368]\d{5}\b/g)||[]).filter(c=>c[0]!=='0'||c>'000900'))];
   }catch(e){document.getElementById('uploadStatus').textContent='❌ OCR失败，请重试';return}
 
