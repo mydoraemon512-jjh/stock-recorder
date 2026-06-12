@@ -67,8 +67,18 @@ async function handleFile(e){
     for(const l of t.split(';')){if(!l.includes('="'))continue;const m=l.match(/="(.+)"/);if(!m)continue;const f=m[1].split('~');if(f.length<50)continue;stocks.push({code:f[2],name:f[1],open:+f[5]||0,close:+f[3]||0,prev:+f[4]||0})}
   }catch(e){}
 
-  const now=new Date();const today=now.toISOString().slice(0,10);
-  const time=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  // 从文件读取截图时间
+  let photoDate=new Date();
+  try{
+    // 尝试读取EXIF
+    const arrayBuffer=await file.arrayBuffer();
+    const dv=new DataView(arrayBuffer);
+    if(dv.getUint16(0,false)===0xFFD8){ // JPEG
+      let offset=2;
+      while(offset<dv.byteLength){if(dv.getUint16(offset,false)===0xFFE1){const exifStart=offset+4;const exifStr=String.fromCharCode(...new Uint8Array(arrayBuffer.slice(exifStart,exifStart+100)));const dateMatch=exifStr.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);if(dateMatch){photoDate=new Date(+dateMatch[1],+dateMatch[2]-1,+dateMatch[3],+dateMatch[4],+dateMatch[5],+dateMatch[6]);break}}offset+=2+dv.getUint16(offset+2,false)}}else{photoDate=new Date(file.lastModified)}
+  }catch(e){photoDate=new Date(file.lastModified)}
+  const today=photoDate.toISOString().slice(0,10);
+  const time=String(photoDate.getHours()).padStart(2,'0')+':'+String(photoDate.getMinutes()).padStart(2,'0');
   const label=today+' '+time;
 
   // 生成缩略图
@@ -122,8 +132,10 @@ function downloadBatch(i){
   const b=batches[i];
   b.downloads.push(new Date().toISOString());save();
   const dates=[...new Set(b.stocks.flatMap(s=>s.records.map(r=>r.date)))].sort();
-  let csv='截图文件,'+(b.fileName||'未知')+'\n上传时间,'+new Date(b.created).toLocaleString('zh-CN')+'\n下载时间,'+new Date().toLocaleString('zh-CN')+'\n股票数量,'+b.codes.length+'只\n\n代码,名称,'+dates.join(',')+'\n';
-  for(const s of b.stocks){csv+=s.code+','+s.name+','+dates.map(d=>{const r=s.records.find(x=>x.date===d);return r?r.close:'-'}).join(',')+'\n'}
+  let csv='截图文件,'+(b.fileName||'未知')+'\n截图时间,'+new Date(b.created).toLocaleString('zh-CN')+'\n下载时间,'+new Date().toLocaleString('zh-CN')+'\n股票数量,'+b.codes.length+'只\n\n代码,名称';
+  for(const d of dates){csv+=','+d+'开盘,'+d+'收盘,'+d+'涨跌'}
+  csv+='\n';
+  for(const s of b.stocks){csv+=s.code+','+s.name;for(const d of dates){const r=s.records.find(x=>x.date===d);csv+=','+(r?r.open.toFixed(2):'-')+','+(r?r.close.toFixed(2):'-')+','+(r?r.chg+'%':'-')}csv+='\n'}
   const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=b.label.replace(/\s/g,'_')+'.csv';a.click();
   renderBatch();
