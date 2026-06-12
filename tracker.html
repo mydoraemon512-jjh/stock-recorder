@@ -138,10 +138,28 @@ function renderBatch(){
   html+='<div class="meta">📥 上次下载：'+lastDL+' | 📊 '+b.codes.length+'只股票 · 已追踪'+days+'天 · '+up+'涨'+down+'跌</div>';
   html+='<div class="stock-row header" style="margin-top:8px"><span>代码</span><span>名称</span><span>开盘</span><span>收盘</span><span>涨跌</span></div>';
   for(const s of b.stocks){const last=s.records[s.records.length-1];const chg=last?+last.chg:0;html+='<div class="stock-row"><span style="font-family:monospace">'+s.code+'</span><span>'+ (s.name||'-')+'</span><span>'+(last?.open?.toFixed(2)||'-')+'</span><span>'+(last?.close?.toFixed(2)||'-')+'</span><span class="'+(chg>0?'up':'down')+'">'+(chg>0?'+':'')+(last?.chg||'0')+'%</span></div>'}
+  // 总结分析
+  const dates=[...new Set(b.stocks.flatMap(s=>s.records.map(r=>r.date)))].sort();
+  if(dates.length>=2){
+    const d1=dates[0],dLast=dates[dates.length-1],dPrev=dates.length>1?dates[dates.length-2]:d1;
+    let sumChg=0,count=0,best=null,worst=null,improved=0,worsened=0;
+    for(const s of b.stocks){
+      const r1=s.records.find(r=>r.date===d1),r2=s.records.find(r=>r.date===dPrev),r3=s.records.find(r=>r.date===dLast);
+      if(r1&&r3){const chg=parseFloat(r3.chg)-parseFloat(r1.chg);sumChg+=chg;count++;if(!best||chg>best.chg)best={name:s.name,code:s.code,chg};if(!worst||chg<worst.chg)worst={name:s.name,code:s.code,chg};if(chg>0)improved++;else worsened++}
+    }
+    const avg=count>0?(sumChg/count).toFixed(1):'--';
+    const trend=+avg>0.5?'📈 向好':+avg<-0.5?'📉 偏弱':'➡️ 横盘';
+    html+='<div class="card" style="margin-top:8px;background:#0f172a;border:1px solid #334155"><div style="font-size:12px;font-weight:700;color:#fbbf24;margin-bottom:6px">📊 表现总结</div>';
+    html+='<div style="font-size:10px;color:#94a3b8;line-height:1.8">';
+    html+='🕐 首日('+d1+') → 最新('+dLast+')：<b style="color:'+(+avg>0?'#ef4444':'#22c55e')+'">'+trend+'</b> 均变 '+ (+avg>0?'+':'') +avg+'%<br>';
+    html+='📈 改善 '+improved+' 只 | 📉 恶化 '+worsened+' 只 | 共追踪 '+count+' 只<br>';
+    if(best)html+='🏆 最佳：'+best.name+'('+best.code+') +'+best.chg.toFixed(1)+'%<br>';
+    if(worst)html+='📉 最差：'+worst.name+'('+worst.code+') '+worst.chg.toFixed(1)+'%<br>';
+    html+='</div></div>';
+  }
   // 历史记录
   html+='<div style="margin-top:10px;font-size:10px;color:#64748b;max-height:150px;overflow-y:auto">';
-  const allDates=[...new Set(b.stocks.flatMap(s=>s.records.map(r=>r.date)))].sort();
-  html+=allDates.map(d=>{const r=b.stocks[0]?.records.find(x=>x.date===d); const t=r?.time||''; return '<div style="padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.02)">📅 '+d+' '+t+' · 记录开盘/收盘</div>'}).join('');
+  html+=dates.map(d=>{const r=b.stocks[0]?.records.find(x=>x.date===d);const t=r?.time||'';return '<div style="padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.02)">📅 '+d+' '+t+' · 记录开盘/收盘</div>'}).join('');
   html+='</div></div>';
   document.getElementById('batchContent').innerHTML=html;
 }
