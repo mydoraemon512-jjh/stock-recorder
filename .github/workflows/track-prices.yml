@@ -1,0 +1,16 @@
+name: 自动追踪股价
+on:
+  schedule:
+    - cron: '30 1 * * 1-5'
+    - cron: '0 7 * * 1-5'
+  workflow_dispatch:
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm i iconv-lite 2>/dev/null; node update-batches.js
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with: { commit_message: '📊 自动更新追踪价格', file_pattern: 'batches.json' }
