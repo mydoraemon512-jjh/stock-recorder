@@ -42,9 +42,22 @@ input[type=file]{display:none}
 </div>
 
 <script>
-let batches=[],activeIdx=-1;
-(function load(){try{batches=JSON.parse(localStorage.getItem('img_batches')||'[]')}catch(e){batches=[]};if(batches.length>0){activeIdx=0;renderTabs();renderBatch()}autoUpdate()})();
-function save(){localStorage.setItem('img_batches',JSON.stringify(batches))}
+let batches=[],activeIdx=-1,cloudUrl=localStorage.getItem('img_cloud_url')||'';
+async function loadData(){
+  if(cloudUrl){try{const r=await fetch(cloudUrl+'?t='+Date.now());if(r.ok){const d=await r.json();if(d&&d.length){batches=d;saveLocal();renderTabs();renderBatch();return}}}catch(e){}}
+  try{batches=JSON.parse(localStorage.getItem('img_batches')||'[]')}catch(e){batches=[]}
+  if(batches.length>0){activeIdx=0;renderTabs();renderBatch()}autoUpdate();
+}
+function saveLocal(){localStorage.setItem('img_batches',JSON.stringify(batches))}
+async function saveCloud(){
+  try{
+    const body=JSON.stringify(batches);
+    if(cloudUrl){await fetch(cloudUrl,{method:'PUT',headers:{'Content-Type':'application/json'},body})}
+    else{const r=await fetch('https://jsonblob.com/api/jsonBlob',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body});const loc=r.headers.get('Location');if(loc){cloudUrl=loc;localStorage.setItem('img_cloud_url',cloudUrl)}}
+    document.getElementById('uploadStatus').textContent+=' ☁️已同步';
+  }catch(e){}
+}
+loadData();
 
 async function handleFile(e){
   const file=e.target.files[0];if(!file)return;
@@ -72,7 +85,7 @@ async function handleFile(e){
   const label=today+' '+time;
 
   batches.unshift({id:Date.now(),date:today,time:time,label:label,codes:codes,created:now.toISOString(),downloads:[],stocks:stocks.map(s=>({...s,records:[{date:today,time:time,open:s.open,close:s.close,chg:((s.close-s.prev)/s.prev*100).toFixed(1)}]}))});
-  save();activeIdx=0;renderTabs();renderBatch();
+  saveLocal();saveCloud();activeIdx=0;renderTabs();renderBatch();
   document.getElementById('uploadStatus').textContent='✅ 识别 '+codes.length+' 只股票，已创建批次';document.getElementById('fileInput').value='';
 }
 
@@ -84,7 +97,7 @@ async function autoUpdate(){
   }catch(e){}
   const today=new Date().toISOString().slice(0,10);const time=new Date().toTimeString().slice(0,5);let ch=false;
   for(const bt of batches){for(const s of bt.stocks){const p=pm[s.code];if(!p)continue;s.name=s.name||p.name;const last=s.records[s.records.length-1];if(!last||last.date!==today){s.records.push({date:today,time:time,open:p.open,close:p.close,chg:((p.close-p.prev)/p.prev*100).toFixed(1)});if(s.records.length>30)s.records=s.records.slice(-30);ch=true}}}
-  if(ch){save();if(activeIdx>=0)renderBatch()}
+  if(ch){saveLocal();saveCloud();if(activeIdx>=0)renderBatch()}
 }
 
 function renderTabs(){
@@ -116,7 +129,7 @@ function renderBatch(){
 
 function downloadBatch(i){
   const b=batches[i];
-  b.downloads.push(new Date().toISOString());save();
+  b.downloads.push(new Date().toISOString());saveLocal();saveCloud();
   const dates=[...new Set(b.stocks.flatMap(s=>s.records.map(r=>r.date)))].sort();
   let csv='创建时间,'+new Date(b.created).toLocaleString('zh-CN')+'\n下载时间,'+new Date().toLocaleString('zh-CN')+'\n\n代码,名称,'+dates.join(',')+'\n';
   for(const s of b.stocks){csv+=s.code+','+s.name+','+dates.map(d=>{const r=s.records.find(x=>x.date===d);return r?r.close:'-'}).join(',')+'\n'}
