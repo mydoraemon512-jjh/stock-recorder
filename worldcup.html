@@ -133,9 +133,13 @@ function showDay(d){
   let html='';
   for(const m of matches){
     const preds=predictMatch(m.home,m.away);
-    html+='<div class="card"><h3>🏟️ '+m.grp+'组 · '+m.home+' vs '+m.away+'</h3>';
-    html+='<div class="match"><span class="team"><span class="flag">'+flag(m.home)+'</span>'+m.home+'</span><span class="vs">VS</span><span class="team"><span class="flag">'+flag(m.away)+'</span>'+m.away+'</span></div>';
-    html+='<div style="font-size:11px;color:#64748b;margin-bottom:4px">📊 比分预测 · 概率 · 赔率</div>';
+    html+='<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:11px;color:#fbbf24">'+m.grp+'组</span><span style="font-size:10px;color:#64748b">🇺🇸 ET '+m.et+'</span><span style="font-size:10px;color:#94a3b8">🇨🇳 北京 '+m.bjt+'</span></div>';
+    html+='<div style="display:flex;align-items:center;gap:8px;padding:8px 0">';
+    html+='<div style="flex:2;text-align:center"><div style="font-size:32px">'+flag(m.home)+'</div><div style="font-size:14px;font-weight:700;color:#fbbf24">'+m.home+'</div><div style="font-size:9px;color:#64748b">主队</div></div>';
+    html+='<div style="font-size:20px;font-weight:900;color:#334155">VS</div>';
+    html+='<div style="flex:2;text-align:center"><div style="font-size:32px">'+flag(m.away)+'</div><div style="font-size:14px;font-weight:700;color:#94a3b8">'+m.away+'</div><div style="font-size:9px;color:#64748b">客队</div></div>';
+    html+='</div>';
+    html+='<div style="font-size:11px;color:#64748b;margin-bottom:4px">📊 比分预测（主队在前）· 概率 · 赔率</div>';
     html+='<div class="predictions">';
     for(const p of preds){
       const odds=(100/parseFloat(p.prob)).toFixed(1);
