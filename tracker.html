@@ -91,10 +91,19 @@ async function autoUpdate(){
   try{const r=await fetch('https://qt.gtimg.cn/q='+qt);const b=await r.arrayBuffer();const t=new TextDecoder('gbk').decode(b);
     for(const l of t.split(';')){if(!l.includes('="'))continue;const m=l.match(/="(.+)"/);if(!m)continue;const f=m[1].split('~');if(f.length<50)continue;pm[f[2]]={open:+f[5]||0,close:+f[3]||0,prev:+f[4]||0,name:f[1]}}
   }catch(e){}
-  const today=new Date().toISOString().slice(0,10);const time=new Date().toTimeString().slice(0,5);let ch=false;
-  for(const bt of batches){for(const s of bt.stocks){const p=pm[s.code];if(!p)continue;s.name=s.name||p.name;const last=s.records[s.records.length-1];if(!last||last.date!==today){s.records.push({date:today,time:time,open:p.open,close:p.close,chg:((p.close-p.prev)/p.prev*100).toFixed(1)});if(s.records.length>30)s.records=s.records.slice(-30);ch=true}}}
+  const now=new Date();const today=now.toISOString().slice(0,10);const h=now.getHours(),m=now.getMinutes();
+  // 只在两个时段记录：9:30-10:00（开盘）和 15:00-15:30（收盘）
+  const isMorning=h===9&&m>=30||h===10&&m<1;const isClose=h===15&&m<30;
+  if(!isMorning&&!isClose)return; // 其他时段只刷新显示不记录
+  const slot=isMorning?'开盘':'收盘';const time=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+  let ch=false;
+  for(const bt of batches){for(const s of bt.stocks){const p=pm[s.code];if(!p)continue;s.name=s.name||p.name;
+    const exist=s.records.find(r=>r.date===today&&r.slot===slot);if(exist)continue;
+    s.records.push({date:today,time:time,slot:slot,open:p.open,close:p.close,chg:((p.close-p.prev)/p.prev*100).toFixed(1)});
+    if(s.records.length>60)s.records=s.records.slice(-60);ch=true}}
   if(ch){saveLocal();saveCloud();if(activeIdx>=0)renderBatch()}
 }
+setInterval(autoUpdate,60000); // 每分钟检查一次
 
 function renderTabs(){
   document.getElementById('tabs').innerHTML=batches.map((b,i)=>
