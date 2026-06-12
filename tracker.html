@@ -56,8 +56,9 @@ function saveLocal(){localStorage.setItem('img_batches',JSON.stringify(batches))
 async function saveCloud(){
   if(!TOKEN){TOKEN=prompt('首次同步，请输入GitHub Token：\n（只需一次，之后自动同步）');if(!TOKEN)return;localStorage.setItem('gh_tok',TOKEN)}
   try{
-    const json=JSON.stringify(batches);
-    const base64=btoa(String.fromCharCode(...new TextEncoder().encode(json)));
+    const bytes=new TextEncoder().encode(JSON.stringify(batches));
+    let base64='';for(let i=0;i<bytes.length;i+=8192){base64+=String.fromCharCode(...bytes.slice(i,i+8192))}
+    base64=btoa(base64);
     let sha='';try{const r=await fetch(API,{headers:{Authorization:'Bearer '+TOKEN}});if(r.ok){const d=await r.json();sha=d.sha}}catch(e){}
     const body={message:'📊 同步追踪数据',content:base64};
     if(sha)body.sha=sha;
