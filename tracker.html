@@ -81,7 +81,7 @@ async function handleFile(e){
   const time=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   const label=today+' '+time;
 
-  batches.unshift({id:Date.now(),date:today,time:time,label:label,codes:codes,created:now.toISOString(),downloads:[],stocks:stocks.map(s=>({...s,records:[{date:today,time:time,open:s.open,close:s.close,chg:((s.close-s.prev)/s.prev*100).toFixed(1)}]}))});
+  batches.unshift({id:Date.now(),date:today,time:time,label:label,codes:codes,created:now.toISOString(),downloads:[],stocks:stocks.map(s=>({...s,records:[{date:today,time:time,slot:'创建',open:s.open,close:s.close,chg:((s.close-s.prev)/s.prev*100).toFixed(1)}]}))});
   saveLocal();saveCloud();activeIdx=0;renderTabs();renderBatch();
   document.getElementById('uploadStatus').textContent='✅ 识别 '+codes.length+' 只股票，已创建批次';document.getElementById('fileInput').value='';
 }
