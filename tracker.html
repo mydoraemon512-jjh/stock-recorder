@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>📸 图片选股追踪</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f172a;color:#e2e8f0;font-family:'PingFang SC',sans-serif;min-height:100vh;display:flex;justify-content:center}
+.app{max-width:650px;width:100%;padding:16px}
+h1{text-align:center;color:#fbbf24;font-size:20px;margin-bottom:12px}
+.card{background:#1e293b;border-radius:14px;padding:16px;margin-bottom:10px;border:1px solid #334155}
+.card h3{font-size:14px;color:#60a5fa;margin-bottom:8px}
+.btn{padding:10px 20px;border-radius:10px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin:4px}
+.btn-blue{background:#2563eb;color:#fff}
+.btn-green{background:#059669;color:#fff}
+.btn-gray{background:#334155;color:#94a3b8}
+#preview{max-width:100%;max-height:300px;border-radius:8px;display:none;margin:8px 0}
+.up{color:#ef4444}.down{color:#22c55e}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:6px 8px;text-align:left;border-bottom:1px solid #1e293b}
+th{color:#64748b;font-size:11px}
+.code-list{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}
+.code-tag{background:#1e293b;border:1px solid #334155;padding:4px 10px;border-radius:8px;font-size:12px;font-family:monospace;display:flex;align-items:center;gap:6px}
+.code-tag .del{color:#ef4444;cursor:pointer;font-size:14px}
+input[type=text]{width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font-family:monospace;font-size:14px}
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>📸 图片选股追踪器</h1>
+
+  <div class="card">
+    <h3>📤 上传股票截图</h3>
+    <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)">
+    <button class="btn btn-blue" onclick="document.getElementById('fileInput').click()">选择图片</button>
+    <img id="preview">
+    <div id="ocrResult" style="margin-top:8px;font-size:12px;color:#64748b"></div>
+  </div>
+
+  <div class="card" id="codeSection" style="display:none">
+    <h3>🔍 识别的股票代码（可手动编辑）</h3>
+    <div class="code-list" id="codeList"></div>
+    <input type="text" id="codeInput" placeholder="手动添加代码，用逗号分隔，如 600519,000858" onchange="addCodes(this.value);this.value=''">
+    <button class="btn btn-green" onclick="startTracking()" style="margin-top:8px">✅ 确认并开始追踪</button>
+  </div>
+
+  <div class="card" id="trackSection" style="display:none">
+    <h3>📊 追踪记录</h3>
+    <div id="trackStats" style="font-size:12px;color:#64748b;margin-bottom:8px"></div>
+    <div style="overflow-x:auto"><table id="trackTable"><thead><tr><th>代码</th><th>名称</th><th>开盘价</th><th>收盘价</th><th>涨跌幅</th><th>日期</th></tr></thead><tbody></tbody></table></div>
+    <button class="btn btn-gray" onclick="exportCSV()">📥 导出Excel</button>
+    <button class="btn btn-gray" onclick="updatePrices()">🔄 刷新价格</button>
+  </div>
+</div>
+
+<script>
+let trackCodes=[], trackData=[];
+
+// 文件上传+OCR
+async function handleFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const img=document.getElementById('preview');img.src=URL.createObjectURL(file);img.style.display='block';
+
+  // 用Canvas提取像素，找6位数字
+  const canvas=document.createElement('canvas');const ctx=canvas.getContext('2d');
+  const bmp=await createImageBitmap(file);
+  canvas.width=bmp.width;canvas.height=bmp.height;ctx.drawImage(bmp,0,0);
+  
+  // 简单OCR：用Tesseract风格扫描
+  document.getElementById('ocrResult').textContent='⏳ 正在识别...';
+  
+  // 加载Tesseract.js
+  if(typeof Tesseract==='undefined'){
+    const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload=()=>runOCR(canvas);
+    document.head.appendChild(s);
+  }else{runOCR(canvas)}
+}
+
+async function runOCR(canvas){
+  try{
+    const {data:{text}}=await Tesseract.recognize(canvas,'chi_sim+eng');
+    // 提取6位数字作为股票代码
+    const codes=[...new Set(text.match(/\b[0368]\d{5}\b/g)||[])];
+    document.getElementById('ocrResult').textContent=`识别到 ${codes.length} 个代码`;
+    showCodes(codes);
+  }catch(e){
+    document.getElementById('ocrResult').textContent='OCR失败，请手动输入代码';
+    showCodes([]);
+  }
+}
+
+function showCodes(codes){
+  trackCodes=codes;
+  document.getElementById('codeSection').style.display='block';
+  renderCodeTags();
+}
+
+function renderCodeTags(){
+  document.getElementById('codeList').innerHTML=trackCodes.map((c,i)=>
+    `<span class="code-tag">${c}<span class="del" onclick="trackCodes.splice(${i},1);renderCodeTags()">×</span></span>`
+  ).join('')||'<span style="color:#64748b">请添加股票代码</span>';
+}
+
+function addCodes(val){
+  const newCodes=(val||'').match(/\d{6}/g)||[];
+  newCodes.forEach(c=>{if(!trackCodes.includes(c))trackCodes.push(c)});
+  renderCodeTags();
+}
+
+async function startTracking(){
+  if(trackCodes.length===0){alert('请先识别或输入股票代码');return}
+  document.getElementById('trackSection').style.display='block';
+  await updatePrices();
+}
+
+async function updatePrices(){
+  const qtCodes=trackCodes.map(c=>(c[0]==='6'||c[0]==='5'||c[0]==='9'?'sh':'sz')+c).join(',');
+  const today=new Date().toISOString().slice(0,10);
+  
+  try{
+    const resp=await fetch('https://qt.gtimg.cn/q='+qtCodes);
+    const buf=await resp.arrayBuffer();
+    const text=new TextDecoder('gbk').decode(buf);
+    trackData=[];
+    for(const line of text.split(';')){
+      if(!line.includes('="'))continue;
+      const m=line.match(/="(.+)"/);if(!m)continue;
+      const f=m[1].split('~');if(f.length<50)continue;
+      const open=+f[5]||0,price=+f[3]||0,prev=+f[4]||0;
+      trackData.push({code:f[2],name:f[1],open,close:price,chgPct:((price-prev)/prev*100).toFixed(1),date:today});
+    }
+  }catch(e){}
+
+  // 加载历史记录
+  let history=[];try{history=JSON.parse(localStorage.getItem('img_track')||'[]')}catch(e){}
+  // 合并今日数据
+  const oldIdx=history.findIndex(r=>r.date===today);
+  if(oldIdx>=0)history[oldIdx]={date:today,stocks:trackData};
+  else history.push({date:today,stocks:trackData});
+  if(history.length>30)history=history.slice(-30);
+  localStorage.setItem('img_track',JSON.stringify(history));
+
+  renderTable(history);
+}
+
+function renderTable(history){
+  document.getElementById('trackStats').textContent=`追踪 ${trackCodes.length} 只股票 · ${history.length} 天记录`;
+  let html='';
+  for(const day of history.reverse()){
+    for(const s of day.stocks||[]){
+      const chg=+s.chgPct;
+      html+=`<tr><td>${s.code}</td><td>${s.name}</td><td>${s.open.toFixed(2)}</td><td>${s.close.toFixed(2)}</td><td class="${chg>0?'up':'down'}">${chg>0?'+':''}${s.chgPct}%</td><td>${day.date}</td></tr>`;
+    }
+  }
+  document.querySelector('#trackTable tbody').innerHTML=html||'<tr><td colspan="6">暂无数据</td></tr>';
+}
+
+function exportCSV(){
+  let csv='代码,名称,开盘价,收盘价,涨跌幅%,日期\n';
+  let history=[];try{history=JSON.parse(localStorage.getItem('img_track')||'[]')}catch(e){}
+  for(const day of history){
+    for(const s of day.stocks||[]){
+      csv+=`${s.code},${s.name},${s.open},${s.close},${s.chgPct},${day.date}\n`;
+    }
+  }
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='股票追踪_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+// 加载历史
+(function(){
+  let history=[];try{history=JSON.parse(localStorage.getItem('img_track')||'[]')}catch(e){}
+  if(history.length>0){
+    trackCodes=[...new Set(history.flatMap(d=>(d.stocks||[]).map(s=>s.code)))];
+    document.getElementById('codeSection').style.display='block';
+    document.getElementById('trackSection').style.display='block';
+    renderCodeTags();
+    renderTable(history);
+  }
+})();
+</script>
+</body>
+</html>
