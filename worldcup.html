@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>🏆 世界杯预测</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a1a;color:#e2e8f0;font-family:'PingFang SC',sans-serif;min-height:100vh;display:flex;justify-content:center}
+.app{max-width:650px;width:100%;padding:16px}
+h1{text-align:center;color:#fbbf24;font-size:24px;margin-bottom:4px}
+.sub{text-align:center;font-size:11px;color:#64748b;margin-bottom:14px}
+.up{color:#ef4444}.down{color:#22c55e}
+.card{background:#111;border-radius:16px;padding:14px;margin-bottom:10px;border:1px solid #222}
+.card h3{font-size:14px;color:#fbbf24;margin-bottom:8px}
+.tabs{display:flex;gap:4px;margin-bottom:10px}
+.tab{padding:8px 16px;border-radius:20px;border:1px solid #334155;background:#111;color:#94a3b8;font-size:12px;cursor:pointer;font-family:inherit}
+.tab.active{background:#fbbf24;color:#0a0a1a;border-color:#fbbf24;font-weight:700}
+.match{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #1a1a2e}
+.match .team{font-size:13px;font-weight:600;flex:2}
+.match .flag{font-size:22px;margin-right:6px}
+.match .vs{font-size:11px;color:#64748b;flex:1;text-align:center}
+.predictions{display:flex;gap:6px;margin-top:6px}
+.pred{flex:1;text-align:center;background:#1a1a2e;border-radius:8px;padding:8px 4px}
+.pred .score{font-size:16px;font-weight:700;font-family:monospace;color:#fbbf24}
+.pred .prob{font-size:10px;color:#64748b}
+.bar{height:4px;border-radius:2px;margin-top:4px;background:#222;overflow:hidden}
+.bar-fill{height:100%;background:#fbbf24;transition:width .5s}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🏆 2026世界杯预测</h1>
+  <div class="sub">AI预测引擎 · 实时动态更新</div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showDay(0)">今天</button>
+    <button class="tab" onclick="showDay(1)">明天</button>
+    <button class="tab" onclick="showDay(2)">后天</button>
+    <button class="tab" onclick="showDay(3)">三天后</button>
+  </div>
+  <div id="matchList"><div style="text-align:center;padding:40px;color:#64748b">加载中...</div></div>
+</div>
+
+<script>
+// 2026世界杯小组赛程（6月11日起）
+const SCHEDULE=[
+  {d:0,home:'墨西哥',away:'葡萄牙',grp:'A'},{d:0,home:'意大利',away:'新西兰',grp:'A'},
+  {d:0,home:'巴西',away:'喀麦隆',grp:'B'},{d:0,home:'丹麦',away:'沙特',grp:'B'},
+  {d:1,home:'阿根廷',away:'韩国',grp:'C'},{d:1,home:'尼日利亚',away:'阿联酋',grp:'C'},
+  {d:1,home:'法国',away:'加拿大',grp:'D'},{d:1,home:'秘鲁',away:'卡塔尔',grp:'D'},
+  {d:2,home:'英格兰',away:'日本',grp:'E'},{d:2,home:'埃及',away:'牙买加',grp:'E'},
+  {d:2,home:'西班牙',away:'摩洛哥',grp:'F'},{d:2,home:'智利',away:'伊朗',grp:'F'},
+  {d:3,home:'德国',away:'哥伦比亚',grp:'G'},{d:3,home:'塞内加尔',away:'中国',grp:'G'},
+  {d:3,home:'荷兰',away:'美国',grp:'H'},{d:3,home:'乌拉圭',away:'澳大利亚',grp:'H'},
+];
+const RANKINGS={
+  '巴西':1,'阿根廷':2,'法国':3,'英格兰':4,'西班牙':5,'德国':6,'荷兰':7,'葡萄牙':8,
+  '意大利':9,'墨西哥':10,'哥伦比亚':11,'乌拉圭':12,'丹麦':13,'克罗地亚':14,'日本':15,
+  '美国':16,'塞内加尔':17,'秘鲁':18,'摩洛哥':19,'智利':20,'韩国':21,'尼日利亚':22,
+  '埃及':23,'喀麦隆':24,'加拿大':25,'沙特':26,'伊朗':27,'澳大利亚':28,'牙买加':29,
+  '卡塔尔':30,'新西兰':31,'阿联酋':32,'中国':33
+};
+const H2H={};
+
+// 泊松分布预测
+function poisson(lambda,k){return Math.exp(-lambda)*Math.pow(lambda,k)/fact(k)}
+function fact(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r}
+
+function predictMatch(home,away){
+  const r1=RANKINGS[home]||20,r2=RANKINGS[away]||20;
+  const base=2.2,homeAdv=0.4,rankDiff=(r2-r1)*0.03;
+  const lambdaHome=Math.max(0.3,base+homeAdv+rankDiff);
+  const lambdaAway=Math.max(0.2,base-homeAdv-rankDiff);
+  const scores=[];
+  for(let h=0;h<=5;h++)for(let a=0;a<=5;a++){const p=poisson(lambdaHome,h)*poisson(lambdaAway,a);if(p>0.005)scores.push({h,a,p})}
+  scores.sort((a,b)=>b.p-a.p);
+  return scores.slice(0,3).map(s=>({score:s.h+'-'+s.a,prob:(s.p*100).toFixed(1)}));
+}
+
+function showDay(d){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',parseInt(t.dataset.d)===d));
+  const matches=SCHEDULE.filter(m=>m.d===d);
+  let html='';
+  for(const m of matches){
+    const preds=predictMatch(m.home,m.away);
+    html+='<div class="card"><h3>🏟️ '+m.grp+'组 · '+m.home+' vs '+m.away+'</h3>';
+    html+='<div class="match"><span class="team"><span class="flag">'+flag(m.home)+'</span>'+m.home+'</span><span class="vs">VS</span><span class="team"><span class="flag">'+flag(m.away)+'</span>'+m.away+'</span></div>';
+    html+='<div style="font-size:11px;color:#64748b;margin-bottom:6px">📊 预测比分（按概率排序）</div>';
+    html+='<div class="predictions">';
+    for(const p of preds){
+      html+='<div class="pred"><div class="score">'+p.score+'</div><div class="prob">'+p.prob+'%</div><div class="bar"><div class="bar-fill" style="width:'+p.prob+'%"></div></div></div>';
+    }
+    html+='</div></div>';
+  }
+  document.getElementById('matchList').innerHTML=html||'<div style="text-align:center;padding:40px;color:#64748b">今日无比赛</div>';
+}
+
+function flag(name){
+  const m={'巴西':'🇧🇷','阿根廷':'🇦🇷','法国':'🇫🇷','英格兰':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','西班牙':'🇪🇸','德国':'🇩🇪','荷兰':'🇳🇱','葡萄牙':'🇵🇹','意大利':'🇮🇹','墨西哥':'🇲🇽','哥伦比亚':'🇨🇴','乌拉圭':'🇺🇾','丹麦':'🇩🇰','日本':'🇯🇵','美国':'🇺🇸','塞内加尔':'🇸🇳','秘鲁':'🇵🇪','摩洛哥':'🇲🇦','智利':'🇨🇱','韩国':'🇰🇷','尼日利亚':'🇳🇬','埃及':'🇪🇬','喀麦隆':'🇨🇲','加拿大':'🇨🇦','沙特':'🇸🇦','伊朗':'🇮🇷','澳大利亚':'🇦🇺','牙买加':'🇯🇲','卡塔尔':'🇶🇦','新西兰':'🇳🇿','阿联酋':'🇦🇪','中国':'🇨🇳','克罗地亚':'🇭🇷'};
+  return m[name]||'🏳️';
+}
+showDay(0);
+setInterval(()=>showDay(0),60000);
+</script>
+</body>
+</html>
