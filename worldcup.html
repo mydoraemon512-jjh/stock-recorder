@@ -85,7 +85,6 @@ h3{font-size:12px;color:#fbbf24;margin-bottom:4px}
   <div id="viewGroups" style="display:none">
     <div class="controls">
       <span style="font-size:9px;color:#64748b">🟢=晋级  🟡=最佳第3候选</span>
-      <button class="ctrl-btn" onclick="resetAllResults()">🗑️ 清除比分</button>
     </div>
     <div class="group-grid" id="groupStandings"></div>
   </div>
@@ -650,7 +649,6 @@ function switchView(v){
   if(v==='bracket')renderBracket();
   if(v==='schedule')showDay(currentDay);
 }
-function resetAllResults(){if(confirm('确定清除所有比分数据？')){RESULTS={};saveResults();setDefaults();renderAll();}}
 function renderAll(){renderDayTabs();if(currentView==='schedule')showDay(currentDay);if(currentView==='groups')renderGroups();if(currentView==='bracket')renderBracket();}
 function updateStatus(){const t=Object.keys(RESULTS).length;document.getElementById('statusBar').innerHTML=`四层特征+ELO断层放大 | ESPN实时比分 | ${t}/${SCHEDULE.length}场已出结果 <span class="auto-refresh">🔄60s</span>`;}
 
