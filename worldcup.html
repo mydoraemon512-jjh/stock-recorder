@@ -86,12 +86,19 @@ function showDay(d){
     const preds=predictMatch(m.home,m.away);
     html+='<div class="card"><h3>🏟️ '+m.grp+'组 · '+m.home+' vs '+m.away+'</h3>';
     html+='<div class="match"><span class="team"><span class="flag">'+flag(m.home)+'</span>'+m.home+'</span><span class="vs">VS</span><span class="team"><span class="flag">'+flag(m.away)+'</span>'+m.away+'</span></div>';
-    html+='<div style="font-size:11px;color:#64748b;margin-bottom:6px">📊 预测比分（按概率排序）</div>';
+    html+='<div style="font-size:11px;color:#64748b;margin-bottom:4px">📊 比分预测 · 概率 · 赔率</div>';
     html+='<div class="predictions">';
     for(const p of preds){
-      html+='<div class="pred"><div class="score">'+p.score+'</div><div class="prob">'+p.prob+'%</div><div class="bar"><div class="bar-fill" style="width:'+p.prob+'%"></div></div></div>';
+      const odds=(100/parseFloat(p.prob)).toFixed(1);
+      html+='<div class="pred"><div class="score">'+p.score+'</div><div class="prob">'+p.prob+'%</div><div style="font-size:9px;color:#f59e0b;margin-top:1px">赔'+odds+'</div><div class="bar"><div class="bar-fill" style="width:'+p.prob+'%"></div></div></div>';
     }
-    html+='</div></div>';
+    html+='</div>';
+    // 胜负平概率
+    const hw=preds.filter(s=>parseInt(s.score)>parseInt(s.score.split('-')[1])).reduce((a,b)=>a+parseFloat(b.prob),0);
+    const aw=preds.filter(s=>parseInt(s.score)<parseInt(s.score.split('-')[1])).reduce((a,b)=>a+parseFloat(b.prob),0);
+    const dr=preds.filter(s=>parseInt(s.score)===parseInt(s.score.split('-')[1])).reduce((a,b)=>a+parseFloat(b.prob),0);
+    html+='<div style="font-size:10px;color:#94a3b8;margin-top:4px;display:flex;gap:16px"><span>'+m.home+'胜 '+hw.toFixed(0)+'%</span><span>平 '+dr.toFixed(0)+'%</span><span>'+m.away+'胜 '+aw.toFixed(0)+'%</span></div>';
+    html+='</div>';
   }
   document.getElementById('matchList').innerHTML=html||'<div style="text-align:center;padding:40px;color:#64748b">今日无比赛</div>';
 }
