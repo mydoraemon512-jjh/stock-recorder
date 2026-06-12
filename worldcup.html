@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>🏆 2026世界杯 AI预测</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -71,8 +74,8 @@ h3{font-size:12px;color:#fbbf24;margin-bottom:4px}
 </head>
 <body>
 <div class="app">
-  <h1>🏆 2026世界杯 AI预测 <a href="index.html" style="font-size:9px;color:#64748b;text-decoration:none;border:1px solid #334155;padding:2px 6px;border-radius:8px;margin-left:6px">📊 每日荐股</a></h1>
-  <div class="sub" id="statusBar">四层特征模型：基本面+决定性+心理历史+噪音过滤 | ESPN实时 | v3.0重建</div>
+  <h1>🏆 2026世界杯 AI预测 <span style="font-size:8px;color:#334155">v3.0</span> <a href="index.html" style="font-size:9px;color:#64748b;text-decoration:none;border:1px solid #334155;padding:2px 6px;border-radius:8px;margin-left:6px">📊 每日荐股</a></h1>
+  <div class="sub" id="statusBar">ELO+xG+宿敌+韧性+翻盘+舆情 | ESPN实时 | 数据加载中...</div>
   <div class="tabs" id="mainTabs">
     <button class="tab active" onclick="switchView('schedule')">📅 赛程</button>
     <button class="tab" onclick="switchView('groups')">📊 积分榜</button>
@@ -157,29 +160,6 @@ const T={
 // ═══════════════════════════════════════════
 // H2H + 球衣克制
 // ═══════════════════════════════════════════
-// 近2年实际比分(传递推理)
-
-const RECENT={
-  '阿根廷':[{o:'巴西',s:'1-0',hg:1,ag:0},{o:'乌拉圭',s:'2-0',hg:2,ag:0},{o:'哥伦比亚',s:'1-0',hg:1,ag:0},{o:'法国',s:'3-3',hg:3,ag:3}],
-  '法国':[{o:'荷兰',s:'2-1',hg:2,ag:1},{o:'意大利',s:'3-1',hg:3,ag:1},{o:'比利时',s:'2-0',hg:2,ag:0},{o:'阿根廷',s:'3-3',hg:3,ag:3}],
-  '巴西':[{o:'阿根廷',s:'0-1',hg:0,ag:1},{o:'乌拉圭',s:'2-0',hg:2,ag:0},{o:'哥伦比亚',s:'1-0',hg:1,ag:0},{o:'英格兰',s:'1-0',hg:1,ag:0}],
-  '德国':[{o:'荷兰',s:'2-2',hg:2,ag:2},{o:'意大利',s:'2-0',hg:2,ag:0},{o:'法国',s:'1-2',hg:1,ag:2},{o:'西班牙',s:'1-1',hg:1,ag:1},{o:'苏格兰',s:'5-1',hg:5,ag:1}],
-  '英格兰':[{o:'意大利',s:'3-1',hg:3,ag:1},{o:'巴西',s:'0-1',hg:0,ag:1},{o:'法国',s:'1-2',hg:1,ag:2},{o:'西班牙',s:'1-2',hg:1,ag:2}],
-  '西班牙':[{o:'意大利',s:'1-0',hg:1,ag:0},{o:'克罗地亚',s:'3-0',hg:3,ag:0},{o:'巴西',s:'3-3',hg:3,ag:3},{o:'德国',s:'1-1',hg:1,ag:1}],
-  '荷兰':[{o:'法国',s:'1-2',hg:1,ag:2},{o:'德国',s:'2-2',hg:2,ag:2},{o:'土耳其',s:'2-1',hg:2,ag:1}],
-  '日本':[{o:'韩国',s:'3-0',hg:3,ag:0},{o:'沙特',s:'2-0',hg:2,ag:0},{o:'伊朗',s:'2-1',hg:2,ag:1},{o:'澳大利亚',s:'3-1',hg:3,ag:1}],
-  '韩国':[{o:'日本',s:'0-3',hg:0,ag:3},{o:'澳大利亚',s:'2-2',hg:2,ag:2},{o:'沙特',s:'2-1',hg:2,ag:1}],
-  '墨西哥':[{o:'美国',s:'2-0',hg:2,ag:0},{o:'加拿大',s:'1-1',hg:1,ag:1},{o:'巴拿马',s:'2-1',hg:2,ag:1}],
-  '美国':[{o:'墨西哥',s:'0-2',hg:0,ag:2},{o:'加拿大',s:'2-0',hg:2,ag:0},{o:'哥伦比亚',s:'1-5',hg:1,ag:5}],
-  '哥伦比亚':[{o:'厄瓜多尔',s:'1-0',hg:1,ag:0},{o:'阿根廷',s:'0-1',hg:0,ag:1},{o:'美国',s:'5-1',hg:5,ag:1}],
-  '厄瓜多尔':[{o:'哥伦比亚',s:'0-1',hg:0,ag:1},{o:'乌拉圭',s:'2-1',hg:2,ag:1},{o:'阿根廷',s:'0-1',hg:0,ag:1}],
-};
-function transitiveCompare(home,away){
-  const hRec=RECENT[home]||[],aRec=RECENT[away]||[],common=[];
-  for(const hm of hRec){for(const am of aRec){if(hm.o===am.o){common.push({opp:hm.o,hS:hm.s,aS:am.s,hGd:hm.hg-hm.ag,aGd:am.hg-am.ag})}}}
-  return common;
-}
-
 const H2H={
   '阿根廷|巴西':{w:3,d:1,l:2,p:'正常',n:''},
   '阿根廷|德国':{w:1,d:1,l:4,p:'克星',n:'德国大赛4胜阿根廷'},
@@ -220,34 +200,223 @@ const JC={
 // 小组 + 赛程
 // ═══════════════════════════════════════════
 
-const RIVALRY={
-  '阿根廷|英格兰':{heat:10,note:'马岛战争仇恨'},'德国|荷兰':{heat:9,note:'欧洲世仇'},'巴西|阿根廷':{heat:9,note:'南美超级德比'},
-  '美国|伊朗':{heat:9,note:'政治对立'},'韩国|日本':{heat:8,note:'亚洲宿敌'},'英格兰|德国':{heat:8,note:'点球心魔'},
-  '法国|阿根廷':{heat:8,note:'2022决赛重演'},'德国|阿根廷':{heat:9,note:'三次决赛宿敌'},'荷兰|阿根廷':{heat:8,note:'三次世界杯恩怨'},
-  '巴西|德国':{heat:9,note:'7-1血海深仇'},'墨西哥|美国':{heat:7,note:'北美德比'},
+// ═══════════════════════════════════════════
+// 近2年实际比赛比分（用于传递推理：A赢B,B赢C→A大概率赢C）
+// ═══════════════════════════════════════════
+const RECENT={
+  '阿根廷':[{o:'巴西',s:'1-0',hg:1,ag:0},{o:'乌拉圭',s:'2-0',hg:2,ag:0},{o:'哥伦比亚',s:'1-0',hg:1,ag:0},{o:'智利',s:'3-0',hg:3,ag:0},{o:'法国',s:'3-3',hg:3,ag:3}],
+  '法国':[{o:'荷兰',s:'2-1',hg:2,ag:1},{o:'意大利',s:'3-1',hg:3,ag:1},{o:'比利时',s:'2-0',hg:2,ag:0},{o:'阿根廷',s:'3-3',hg:3,ag:3},{o:'英格兰',s:'2-1',hg:2,ag:1}],
+  '巴西':[{o:'阿根廷',s:'0-1',hg:0,ag:1},{o:'乌拉圭',s:'2-0',hg:2,ag:0},{o:'哥伦比亚',s:'1-0',hg:1,ag:0},{o:'英格兰',s:'1-0',hg:1,ag:0},{o:'西班牙',s:'3-3',hg:3,ag:3}],
+  '德国':[{o:'荷兰',s:'2-2',hg:2,ag:2},{o:'意大利',s:'2-0',hg:2,ag:0},{o:'法国',s:'1-2',hg:1,ag:2},{o:'西班牙',s:'1-1',hg:1,ag:1},{o:'苏格兰',s:'5-1',hg:5,ag:1}],
+  '英格兰':[{o:'意大利',s:'3-1',hg:3,ag:1},{o:'巴西',s:'0-1',hg:0,ag:1},{o:'法国',s:'1-2',hg:1,ag:2},{o:'西班牙',s:'1-2',hg:1,ag:2},{o:'德国',s:'1-1',hg:1,ag:1}],
+  '西班牙':[{o:'意大利',s:'1-0',hg:1,ag:0},{o:'克罗地亚',s:'3-0',hg:3,ag:0},{o:'巴西',s:'3-3',hg:3,ag:3},{o:'德国',s:'1-1',hg:1,ag:1},{o:'英格兰',s:'2-1',hg:2,ag:1}],
+  '葡萄牙':[{o:'荷兰',s:'2-1',hg:2,ag:1},{o:'克罗地亚',s:'2-2',hg:2,ag:2},{o:'土耳其',s:'3-0',hg:3,ag:0},{o:'捷克',s:'2-1',hg:2,ag:1}],
+  '荷兰':[{o:'法国',s:'1-2',hg:1,ag:2},{o:'德国',s:'2-2',hg:2,ag:2},{o:'葡萄牙',s:'1-2',hg:1,ag:2},{o:'土耳其',s:'2-1',hg:2,ag:1},{o:'波兰',s:'2-1',hg:2,ag:1}],
+  '意大利':[{o:'英格兰',s:'1-3',hg:1,ag:3},{o:'德国',s:'0-2',hg:0,ag:2},{o:'法国',s:'1-3',hg:1,ag:3},{o:'西班牙',s:'0-1',hg:0,ag:1},{o:'克罗地亚',s:'1-1',hg:1,ag:1}],
+  '克罗地亚':[{o:'西班牙',s:'0-3',hg:0,ag:3},{o:'意大利',s:'1-1',hg:1,ag:1},{o:'葡萄牙',s:'2-2',hg:2,ag:2},{o:'土耳其',s:'1-0',hg:1,ag:0}],
+  '比利时':[{o:'法国',s:'0-2',hg:0,ag:2},{o:'奥地利',s:'2-3',hg:2,ag:3},{o:'瑞典',s:'3-0',hg:3,ag:0},{o:'罗马尼亚',s:'2-0',hg:2,ag:0},{o:'荷兰',s:'1-1',hg:1,ag:1}],
+  '日本':[{o:'韩国',s:'3-0',hg:3,ag:0},{o:'中国',s:'7-0',hg:7,ag:0},{o:'沙特',s:'2-0',hg:2,ag:0},{o:'伊朗',s:'2-1',hg:2,ag:1},{o:'澳大利亚',s:'3-1',hg:3,ag:1}],
+  '韩国':[{o:'日本',s:'0-3',hg:0,ag:3},{o:'中国',s:'1-0',hg:1,ag:0},{o:'澳大利亚',s:'2-2',hg:2,ag:2},{o:'沙特',s:'2-1',hg:2,ag:1},{o:'约旦',s:'2-0',hg:2,ag:0}],
+  '墨西哥':[{o:'美国',s:'2-0',hg:2,ag:0},{o:'加拿大',s:'1-1',hg:1,ag:1},{o:'牙买加',s:'3-0',hg:3,ag:0},{o:'巴拿马',s:'2-1',hg:2,ag:1},{o:'南非',s:'2-0',hg:2,ag:0}],
+  '美国':[{o:'墨西哥',s:'0-2',hg:0,ag:2},{o:'加拿大',s:'2-0',hg:2,ag:0},{o:'哥伦比亚',s:'1-5',hg:1,ag:5},{o:'巴西',s:'1-1',hg:1,ag:1},{o:'巴拿马',s:'2-1',hg:2,ag:1}],
+  '摩洛哥':[{o:'科特迪瓦',s:'2-1',hg:2,ag:1},{o:'南非',s:'2-0',hg:2,ag:0},{o:'赞比亚',s:'2-1',hg:2,ag:1},{o:'坦桑尼亚',s:'3-0',hg:3,ag:0}],
+  '乌拉圭':[{o:'阿根廷',s:'0-2',hg:0,ag:2},{o:'巴西',s:'0-2',hg:0,ag:2},{o:'哥伦比亚',s:'2-2',hg:2,ag:2},{o:'巴拿马',s:'3-1',hg:3,ag:1},{o:'玻利维亚',s:'5-0',hg:5,ag:0}],
+  '哥伦比亚':[{o:'厄瓜多尔',s:'1-0',hg:1,ag:0},{o:'阿根廷',s:'0-1',hg:0,ag:1},{o:'巴西',s:'0-1',hg:0,ag:1},{o:'美国',s:'5-1',hg:5,ag:1},{o:'巴拿马',s:'3-0',hg:3,ag:0}],
+  '厄瓜多尔':[{o:'哥伦比亚',s:'0-1',hg:0,ag:1},{o:'乌拉圭',s:'2-1',hg:2,ag:1},{o:'阿根廷',s:'0-1',hg:0,ag:1},{o:'牙买加',s:'3-0',hg:3,ag:0},{o:'委内瑞拉',s:'2-1',hg:2,ag:1}],
+  '加拿大':[{o:'墨西哥',s:'1-1',hg:1,ag:1},{o:'美国',s:'0-2',hg:0,ag:2},{o:'古巴',s:'4-0',hg:4,ag:0},{o:'巴拿马',s:'2-0',hg:2,ag:0}],
+  '瑞士':[{o:'德国',s:'0-1',hg:0,ag:1},{o:'意大利',s:'1-1',hg:1,ag:1},{o:'丹麦',s:'2-0',hg:2,ag:0},{o:'塞尔维亚',s:'2-1',hg:2,ag:1}],
+  '土耳其':[{o:'葡萄牙',s:'0-3',hg:0,ag:3},{o:'荷兰',s:'1-2',hg:1,ag:2},{o:'克罗地亚',s:'0-1',hg:0,ag:1},{o:'亚美尼亚',s:'2-0',hg:2,ag:0}],
+  '丹麦':[{o:'瑞士',s:'0-2',hg:0,ag:2},{o:'西班牙',s:'0-1',hg:0,ag:1},{o:'挪威',s:'2-1',hg:2,ag:1},{o:'苏格兰',s:'1-1',hg:1,ag:1}],
+  '奥地利':[{o:'比利时',s:'3-2',hg:3,ag:2},{o:'瑞典',s:'3-1',hg:3,ag:1},{o:'挪威',s:'2-2',hg:2,ag:2},{o:'土耳其',s:'1-0',hg:1,ag:0}],
+  '挪威':[{o:'奥地利',s:'2-2',hg:2,ag:2},{o:'丹麦',s:'1-2',hg:1,ag:2},{o:'苏格兰',s:'1-0',hg:1,ag:0},{o:'瑞典',s:'3-1',hg:3,ag:1}],
+  '瑞典':[{o:'比利时',s:'0-3',hg:0,ag:3},{o:'奥地利',s:'1-3',hg:1,ag:3},{o:'挪威',s:'1-3',hg:1,ag:3},{o:'丹麦',s:'2-1',hg:2,ag:1}],
+  '苏格兰':[{o:'德国',s:'1-5',hg:1,ag:5},{o:'西班牙',s:'0-2',hg:0,ag:2},{o:'丹麦',s:'1-1',hg:1,ag:1},{o:'挪威',s:'0-1',hg:0,ag:1}],
+  '捷克':[{o:'葡萄牙',s:'1-2',hg:1,ag:2},{o:'西班牙',s:'0-2',hg:0,ag:2},{o:'波兰',s:'2-1',hg:2,ag:1},{o:'匈牙利',s:'2-2',hg:2,ag:2}],
+  '伊朗':[{o:'日本',s:'1-2',hg:1,ag:2},{o:'韩国',s:'2-2',hg:2,ag:2},{o:'沙特',s:'1-0',hg:1,ag:0},{o:'卡塔尔',s:'2-1',hg:2,ag:1}],
+  '澳大利亚':[{o:'日本',s:'1-3',hg:1,ag:3},{o:'韩国',s:'2-2',hg:2,ag:2},{o:'沙特',s:'2-0',hg:2,ag:0},{o:'中国',s:'2-0',hg:2,ag:0}],
+  '塞内加尔':[{o:'摩洛哥',s:'0-1',hg:0,ag:1},{o:'科特迪瓦',s:'1-2',hg:1,ag:2},{o:'埃及',s:'1-1',hg:1,ag:1},{o:'阿尔及利亚',s:'2-0',hg:2,ag:0}],
+  '埃及':[{o:'摩洛哥',s:'0-2',hg:0,ag:2},{o:'塞内加尔',s:'1-1',hg:1,ag:1},{o:'加纳',s:'2-1',hg:2,ag:1},{o:'阿尔及利亚',s:'2-1',hg:2,ag:1}],
+  '南非':[{o:'摩洛哥',s:'0-2',hg:0,ag:2},{o:'墨西哥',s:'0-2',hg:0,ag:2},{o:'赞比亚',s:'2-1',hg:2,ag:1},{o:'突尼斯',s:'0-0',hg:0,ag:0}],
+  '沙特':[{o:'日本',s:'0-2',hg:0,ag:2},{o:'韩国',s:'1-2',hg:1,ag:2},{o:'伊朗',s:'0-1',hg:0,ag:1},{o:'澳大利亚',s:'0-2',hg:0,ag:2}],
+  '突尼斯':[{o:'南非',s:'0-0',hg:0,ag:0},{o:'马里',s:'1-0',hg:1,ag:0},{o:'阿尔及利亚',s:'2-2',hg:2,ag:2},{o:'摩洛哥',s:'0-1',hg:0,ag:1}],
+  '科特迪瓦':[{o:'摩洛哥',s:'1-2',hg:1,ag:2},{o:'塞内加尔',s:'2-1',hg:2,ag:1},{o:'加纳',s:'2-1',hg:2,ag:1},{o:'尼日利亚',s:'1-0',hg:1,ag:0}],
 };
+
+
+// 传递推理：找共同对手比较比分
+function transitiveCompare(home,away){
+  const hRec=RECENT[home]||[],aRec=RECENT[away]||[],common=[];
+  for(const hm of hRec){
+    for(const am of aRec){
+      if(hm.o===am.o){
+        const hGd=hm.hg-hm.ag,aGd=am.hg-am.ag;
+        common.push({opp:hm.o,hS:hm.s,aS:am.s,hGd,aGd});
+      }
+    }
+  }
+  return common;
+}
+
+
+// ═══════════════════════════════════════════
+// 宿敌仇恨 & 大比分倾向 & 崩盘韧性
+// ═══════════════════════════════════════════
+const RIVALRY={
+  '阿根廷|英格兰':{heat:10,note:'马岛战争仇恨，场上火药味极浓'},
+  '德国|荷兰':{heat:9,note:'欧洲世仇，1974决赛恩怨'},
+  '巴西|阿根廷':{heat:9,note:'南美超级德比，双方永不退缩'},
+  '美国|伊朗':{heat:9,note:'政治对立，1998世界杯经典'},
+  '韩国|日本':{heat:8,note:'亚洲宿敌，输谁都不能输对方'},
+  '英格兰|德国':{heat:8,note:'1966+1990+2010，点球心魔'},
+  '法国|阿根廷':{heat:8,note:'2022决赛重演，新仇旧恨'},
+  '葡萄牙|西班牙':{heat:7,note:'伊比利亚德比，地缘世仇'},
+  '墨西哥|美国':{heat:7,note:'北美德比，边境恩怨'},
+  '德国|阿根廷':{heat:9,note:'1986/1990/2014 三次决赛宿敌'},
+  '荷兰|阿根廷':{heat:8,note:'1998+2014+2022 三次世界杯恩怨'},
+  '巴西|德国':{heat:9,note:'2002决赛+2014半决赛7-1，血海深仇'},
+  '意大利|德国':{heat:7,note:'1982决赛+2006半决赛，欧洲德比'},
+  '英格兰|阿根廷':{heat:10,note:'马岛战争+1986上帝之手+1998红牌'},
+  '巴西|乌拉圭':{heat:7,note:'1950马拉卡纳惨案，巴西永远的痛'},
+};
+
+// 球队特质：bigWin(1-10大比分倾向) + resilience(1-10逆境韧性) + comeback(1-10翻盘能力)
 const TRAITS={
   '德国':{bigWin:9,resilience:10,comeback:9,note:'永不放弃，欺负弱队往死里打(7-1巴西)'},
-  '巴西':{bigWin:9,resilience:7,comeback:6,note:'进攻天赋碾压'},
-  '阿根廷':{bigWin:6,resilience:9,comeback:9,note:'梅西时代韧性极强'},
-  '法国':{bigWin:8,resilience:8,comeback:8,note:'天赋溢出，2022决赛0-2追到3-3'},
-  '英格兰':{bigWin:7,resilience:6,comeback:5,note:'心理脆弱，点球心魔'},
-  '西班牙':{bigWin:6,resilience:7,comeback:6,note:'传控稳但大比分不多'},
-  '荷兰':{bigWin:7,resilience:8,comeback:9,note:'多次大赛逆转'},
-  '克罗地亚':{bigWin:5,resilience:10,comeback:10,note:'加时赛之王！史上最强韧性'},
-  '韩国':{bigWin:5,resilience:9,comeback:9,note:'跑不死+永不放弃'},
-  '日本':{bigWin:7,resilience:8,comeback:8,note:'亚洲最强精神力'},
-  '摩洛哥':{bigWin:4,resilience:8,comeback:7,note:'2022四强防守韧性'},
-  '乌拉圭':{bigWin:5,resilience:9,comeback:7,note:'南美硬骨头'},
-  '沙特':{bigWin:3,resilience:3,comeback:3,note:'被强队进球后易崩'},
-  '卡塔尔':{bigWin:3,resilience:4,comeback:3,note:'压力大易崩'},
-  '海地':{bigWin:1,resilience:2,comeback:1,note:'实力有限'},
-  '库拉索':{bigWin:1,resilience:2,comeback:1,note:'小国弱旅'},
-  '巴拿马':{bigWin:2,resilience:3,comeback:2,note:'世界杯新军'},
-  '民主刚果':{bigWin:2,resilience:2,comeback:1,note:'组织松散'},
+  '巴西':{bigWin:9,resilience:7,comeback:6,note:'进攻天赋碾压，但被扳平后易急躁'},
+  '阿根廷':{bigWin:6,resilience:9,comeback:9,note:'梅西时代韧性极强，2022决赛两度被追平反而更强'},
+  '法国':{bigWin:8,resilience:8,comeback:8,note:'天赋溢出，大比分常见，2022决赛0-2落后追到3-3'},
+  '英格兰':{bigWin:7,resilience:6,comeback:5,note:'强队通杀但心理脆弱，被追平容易崩'},
+  '西班牙':{bigWin:6,resilience:7,comeback:6,note:'传控耗死对手，大比分不多但稳'},
+  '荷兰':{bigWin:7,resilience:8,comeback:9,note:'多次大赛逆转，2022对阿根廷0-2追到2-2'},
+  '葡萄牙':{bigWin:7,resilience:8,comeback:7,note:'C罗精神领袖，逆境有爆发力'},
+  '比利时':{bigWin:6,resilience:6,comeback:5,note:'黄金一代老化，领先守不住，落后难翻'},
+  '意大利':{bigWin:5,resilience:9,comeback:7,note:'1-0专家，防守硬，2020欧洲杯决赛逆转'},
+  '克罗地亚':{bigWin:5,resilience:10,comeback:10,note:'加时赛之王！2022淘汰赛连追两场点球，史上最强韧性'},
+  '乌拉圭':{bigWin:5,resilience:9,comeback:7,note:'南美硬骨头，打架比踢球厉害，逆境更凶'},
+  '墨西哥':{bigWin:6,resilience:7,comeback:5,note:'小组赛之王，但淘汰赛习惯性崩盘'},
+  '日本':{bigWin:7,resilience:8,comeback:8,note:'2022赢德国西班牙均为逆转，亚洲最强精神力'},
+  '韩国':{bigWin:5,resilience:9,comeback:9,note:'跑不死+永不放弃，2022逆转葡萄牙，2002四强'},
+  '美国':{bigWin:6,resilience:7,comeback:6,note:'东道主，年轻有冲劲'},
+  '摩洛哥':{bigWin:4,resilience:8,comeback:7,note:'2022四强证明防守韧性，落后也不乱'},
+  '哥伦比亚':{bigWin:6,resilience:6,comeback:5,note:'南美新贵，情绪化球队'},
+  '挪威':{bigWin:7,resilience:5,comeback:4,note:'哈兰德领衔进攻强，但大赛经验少'},
+  // 低韧性队（容易崩盘）
+  '沙特':{bigWin:3,resilience:3,comeback:3,note:'被强队进球后易崩，但2022赢阿根廷创奇迹'},
+  '卡塔尔':{bigWin:3,resilience:4,comeback:3,note:'东道主压力大，丢球后心态易崩'},
+  '巴拿马':{bigWin:2,resilience:3,comeback:2,note:'世界杯新军，被打崩后难组织'},
+  '新西兰':{bigWin:2,resilience:3,comeback:2,note:'大洋洲冠军，世界杯常被打大比分'},
+  '海地':{bigWin:1,resilience:2,comeback:1,note:'实力有限，被进球后基本放弃'},
+  '库拉索':{bigWin:1,resilience:2,comeback:1,note:'小国弱旅，容易大比分输球'},
+  '波黑':{bigWin:3,resilience:3,comeback:2,note:'防守薄弱，丢球后难翻盘'},
+  '佛得角':{bigWin:2,resilience:3,comeback:2,note:'世界杯新丁，抗压能力弱'},
+  '民主刚果':{bigWin:2,resilience:2,comeback:1,note:'组织松散，落后时容易溃败'},
+  // 高翻盘队
+  '伊朗':{bigWin:4,resilience:8,comeback:7,note:'亚洲铁血防守，2022赢威尔士展现韧性'},
+  '澳大利亚':{bigWin:5,resilience:7,comeback:7,note:'2022连赢突尼斯丹麦出线，逆袭高手'},
+  '塞内加尔':{bigWin:5,resilience:7,comeback:6,note:'非洲强队，身体对抗强，不轻易认输'},
+  '丹麦':{bigWin:5,resilience:7,comeback:7,note:'北欧韧劲，2020欧洲杯埃里克森事件后逆袭'},
+  '瑞士':{bigWin:4,resilience:8,comeback:8,note:'2020欧洲杯淘汰法国，2022赢葡萄牙，逆转专家'},
+  '瑞典':{bigWin:4,resilience:7,comeback:6,note:'北欧球队，防守扎实不易崩'},
+  '哥斯达黎加':{bigWin:3,resilience:8,comeback:8,note:'2014死亡之组头名，传奇逆袭'},
 };
-function getRivalry(h,a){return RIVALRY[h+'|'+a]||RIVALRY[a+'|'+h]||null}
-function getTraits(t){return TRAITS[t]||{bigWin:5,resilience:5,comeback:5,note:''}}
+
+function getRivalry(home,away){
+  return RIVALRY[home+'|'+away]||RIVALRY[away+'|'+home]||null;
+}
+
+function getTraits(team){
+  return TRAITS[team]||{bigWin:5,resilience:5,note:''};
+}
+
+
+// ═══════════════════════════════════════════
+// 场馆数据：海拔+草皮+顶棚类型
+// ═══════════════════════════════════════════
+const VENUES={
+  '🇲🇽 墨西哥城·阿兹台克':{alt:2250,pitch:'天然草',roof:'露天',city:'墨西哥城',lat:19.3,lon:-99.1},
+  '🇲🇽 瓜达拉哈拉·阿克伦':{alt:1566,pitch:'天然草',roof:'露天',city:'瓜达拉哈拉',lat:20.7,lon:-103.3},
+  '🇲🇽 蒙特雷·BBVA':{alt:540,pitch:'天然草',roof:'露天',city:'蒙特雷',lat:25.7,lon:-100.3},
+  '🇺🇸 纽约·大都会人寿':{alt:3,pitch:'人工草',roof:'露天',city:'纽约',lat:40.8,lon:-74.1},
+  '🇺🇸 洛杉矶·SoFi':{alt:30,pitch:'人工草',roof:'室内',city:'洛杉矶',lat:33.9,lon:-118.3},
+  '🇺🇸 达拉斯·AT&T':{alt:180,pitch:'人工草',roof:'可关闭',city:'达拉斯',lat:32.7,lon:-97.1},
+  '🇺🇸 亚特兰大·梅赛德斯':{alt:320,pitch:'人工草',roof:'可关闭',city:'亚特兰大',lat:33.7,lon:-84.4},
+  '🇺🇸 休斯顿·NRG':{alt:15,pitch:'人工草',roof:'可关闭',city:'休斯顿',lat:29.7,lon:-95.4},
+  '🇺🇸 费城·林肯金融':{alt:12,pitch:'天然草',roof:'露天',city:'费城',lat:39.9,lon:-75.2},
+  '🇺🇸 波士顿·吉列':{alt:60,pitch:'人工草',roof:'露天',city:'波士顿',lat:42.1,lon:-71.3},
+  '🇺🇸 旧金山·李维斯':{alt:5,pitch:'天然草',roof:'露天',city:'旧金山',lat:37.4,lon:-121.9},
+  '🇺🇸 迈阿密·硬石':{alt:2,pitch:'天然草',roof:'露天',city:'迈阿密',lat:25.9,lon:-80.2},
+  '🇺🇸 西雅图·流明':{alt:100,pitch:'人工草',roof:'露天',city:'西雅图',lat:47.6,lon:-122.3},
+  '🇺🇸 堪萨斯城·箭头':{alt:270,pitch:'天然草',roof:'露天',city:'堪萨斯城',lat:39.0,lon:-94.5},
+  '🇨🇦 多伦多·BMO':{alt:76,pitch:'天然草',roof:'露天',city:'多伦多',lat:43.6,lon:-79.4},
+  '🇨🇦 温哥华·BC Place':{alt:2,pitch:'人工草',roof:'可关闭',city:'温哥华',lat:49.3,lon:-123.1},
+};
+
+// 战术风格
+const TACTICS={
+  '德国':{s:'高位逼抢',vs:{低位防守:1.3,传控:1.0,防反:0.7}},
+  '西班牙':{s:'传控',vs:{防反:0.6,高位逼抢:1.0,低位防守:1.3}},
+  '意大利':{s:'低位防守',vs:{传控:1.4,高位逼抢:1.2,防反:0.9}},
+  '法国':{s:'防反',vs:{传控:1.3,低位防守:1.0,高位逼抢:0.8}},
+  '巴西':{s:'传控',vs:{防反:0.7,高位逼抢:1.0,低位防守:1.2}},
+  '阿根廷':{s:'传控',vs:{防反:0.8,高位逼抢:1.0,低位防守:1.2}},
+  '英格兰':{s:'高位逼抢',vs:{低位防守:1.2,传控:1.0,防反:0.8}},
+  '荷兰':{s:'传控',vs:{防反:0.7,高位逼抢:1.0,低位防守:1.3}},
+  '葡萄牙':{s:'防反',vs:{传控:1.2,低位防守:1.0,高位逼抢:0.9}},
+  '克罗地亚':{s:'传控',vs:{防反:0.8,高位逼抢:0.9,低位防守:1.1}},
+  '日本':{s:'高位逼抢',vs:{低位防守:1.1,传控:0.9,防反:0.8}},
+  '韩国':{s:'高位逼抢',vs:{低位防守:1.0,传控:0.8,防反:0.9}},
+  '摩洛哥':{s:'低位防守',vs:{传控:1.3,高位逼抢:1.1,防反:0.9}},
+  '乌拉圭':{s:'低位防守',vs:{传控:1.3,高位逼抢:1.2,防反:0.9}},
+  '伊朗':{s:'低位防守',vs:{传控:1.2,高位逼抢:1.1,防反:0.8}},
+  '墨西哥':{s:'高位逼抢',vs:{传控:1.1,低位防守:1.0,防反:0.9}},
+  '美国':{s:'高位逼抢',vs:{低位防守:1.0,传控:0.9,防反:0.9}},
+  '丹麦':{s:'低位防守',vs:{传控:1.2,高位逼抢:1.0,防反:0.8}},
+  '瑞士':{s:'低位防守',vs:{传控:1.2,高位逼抢:1.0,防反:0.8}},
+  '瑞典':{s:'低位防守',vs:{传控:1.1,高位逼抢:1.0,防反:0.8}},
+};
+
+// 裁判风格（随机分配，体现不确定性）
+const REF_STYLES=[
+  {cards:4.5,pens:0.3,desc:'严格执法·爱出牌',impact:-5},
+  {cards:3.0,pens:0.2,desc:'正常尺度',impact:0},
+  {cards:1.8,pens:0.1,desc:'宽松执法·让比赛流畅',impact:5},
+];
+
+function getTacticalClash(home,away){
+  const ht=TACTICS[home]||{s:'均衡',vs:{}},at=TACTICS[away]||{s:'均衡',vs:{}};
+  const hAdv=ht.vs[at.s]||1.0,aAdv=at.vs[ht.s]||1.0;
+  const diff=hAdv-aAdv;
+  if(diff>0.12)return{boost:diff*10,note:home+'的【'+ht.s+'】克制'+away+'的【'+at.s+'】'};
+  if(diff<-0.12)return{boost:diff*10,note:away+'的【'+at.s+'】克制'+home+'的【'+ht.s+'】'};
+  return{boost:0,note:'战术均势: '+ht.s+' vs '+at.s};
+}
+
+let weatherCache={},weatherCacheTime=0;
+async function getWeather(lat,lon){
+  const key=lat+','+lon,now=Date.now();
+  if(weatherCache[key]&&now-weatherCacheTime<3600000)return weatherCache[key];
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,precipitation,weather_code,wind_speed_10m');
+    const d=await r.json(),cur=d.current||{};
+    const w={temp:cur.temperature_2m||22,rain:cur.precipitation||0,wind:cur.wind_speed_10m||8,code:cur.weather_code||0};
+    weatherCache[key]=w;weatherCacheTime=now;return w;
+  }catch(e){return{temp:22,rain:0,wind:8,code:0}}
+}
+
+function weatherImpact(weather,venue){
+  if(!venue)return{boost:0,note:'无场馆数据'};
+  if(venue.roof==='室内'||venue.roof==='可关闭')return{boost:0,note:'🏟️室内/可关顶·天气无影响'};
+  let boost=0,notes=[];
+  if(weather.rain>3){boost-=8;notes.push('🌧️暴雨')}
+  else if(weather.rain>1){boost-=3;notes.push('🌦️有雨')}
+  if(weather.temp>33){boost-=5;notes.push('🔥酷热'+weather.temp+'°C')}
+  else if(weather.temp>29){boost-=2;notes.push('☀️偏热'+weather.temp+'°C')}
+  if(weather.wind>30){boost-=8;notes.push('💨狂风')}
+  else if(weather.wind>18){boost-=3;notes.push('🍃大风')}
+  if(venue.alt>2000){boost-=10;notes.push('⛰️高原'+venue.alt+'m')}
+  else if(venue.alt>1000){boost-=5;notes.push('🏔️高海拔'+venue.alt+'m')}
+  return{boost,note:notes.length>0?notes.join('·'):'🌤️天气正常'};
+}
 
 const GROUPS={
   'A':['墨西哥','南非','韩国','捷克'],'B':['加拿大','波黑','卡塔尔','瑞士'],'C':['巴西','摩洛哥','海地','苏格兰'],
@@ -257,78 +426,78 @@ const GROUPS={
 };
 
 const SCHEDULE=[
-  {r:1,d:0,grp:'A',bjt:'6/12 03:00',home:'墨西哥',away:'南非'},
-  {r:1,d:0,grp:'A',bjt:'6/12 10:00',home:'韩国',away:'捷克'},
-  {r:1,d:1,grp:'B',bjt:'6/13 03:00',home:'加拿大',away:'波黑'},
-  {r:1,d:1,grp:'D',bjt:'6/13 09:00',home:'美国',away:'巴拉圭'},
-  {r:1,d:2,grp:'C',bjt:'6/14 03:00',home:'海地',away:'苏格兰'},
-  {r:1,d:2,grp:'C',bjt:'6/14 06:00',home:'巴西',away:'摩洛哥'},
-  {r:1,d:2,grp:'B',bjt:'6/14 09:00',home:'卡塔尔',away:'瑞士'},
-  {r:1,d:2,grp:'D',bjt:'6/14 12:00',home:'澳大利亚',away:'土耳其'},
-  {r:1,d:3,grp:'E',bjt:'6/15 01:00',home:'德国',away:'库拉索'},
-  {r:1,d:3,grp:'E',bjt:'6/15 04:00',home:'科特迪瓦',away:'厄瓜多尔'},
-  {r:1,d:3,grp:'F',bjt:'6/15 07:00',home:'荷兰',away:'日本'},
-  {r:1,d:3,grp:'F',bjt:'6/15 10:00',home:'瑞典',away:'突尼斯'},
-  {r:1,d:4,grp:'H',bjt:'6/16 01:00',home:'西班牙',away:'佛得角'},
-  {r:1,d:4,grp:'H',bjt:'6/16 04:00',home:'沙特',away:'乌拉圭'},
-  {r:1,d:4,grp:'G',bjt:'6/16 07:00',home:'比利时',away:'埃及'},
-  {r:1,d:4,grp:'G',bjt:'6/16 10:00',home:'伊朗',away:'新西兰'},
-  {r:1,d:5,grp:'I',bjt:'6/17 01:00',home:'法国',away:'塞内加尔'},
-  {r:1,d:5,grp:'I',bjt:'6/17 04:00',home:'伊拉克',away:'挪威'},
-  {r:1,d:5,grp:'J',bjt:'6/17 07:00',home:'阿根廷',away:'阿尔及利亚'},
-  {r:1,d:5,grp:'J',bjt:'6/17 10:00',home:'奥地利',away:'约旦'},
-  {r:1,d:6,grp:'K',bjt:'6/18 01:00',home:'葡萄牙',away:'民主刚果'},
-  {r:1,d:6,grp:'L',bjt:'6/18 04:00',home:'英格兰',away:'克罗地亚'},
-  {r:1,d:6,grp:'L',bjt:'6/18 07:00',home:'加纳',away:'巴拿马'},
-  {r:1,d:6,grp:'K',bjt:'6/18 10:00',home:'乌兹别克斯坦',away:'哥伦比亚'},
-  {r:2,d:7,grp:'A',bjt:'6/19 01:00',home:'捷克',away:'南非'},
-  {r:2,d:7,grp:'B',bjt:'6/19 04:00',home:'瑞士',away:'波黑'},
-  {r:2,d:7,grp:'B',bjt:'6/19 07:00',home:'加拿大',away:'卡塔尔'},
-  {r:2,d:7,grp:'A',bjt:'6/19 10:00',home:'墨西哥',away:'韩国'},
-  {r:2,d:8,grp:'C',bjt:'6/20 01:00',home:'巴西',away:'海地'},
-  {r:2,d:8,grp:'C',bjt:'6/20 04:00',home:'苏格兰',away:'摩洛哥'},
-  {r:2,d:8,grp:'D',bjt:'6/20 07:00',home:'土耳其',away:'巴拉圭'},
-  {r:2,d:8,grp:'D',bjt:'6/20 10:00',home:'美国',away:'澳大利亚'},
-  {r:2,d:9,grp:'E',bjt:'6/21 01:00',home:'德国',away:'科特迪瓦'},
-  {r:2,d:9,grp:'E',bjt:'6/21 04:00',home:'厄瓜多尔',away:'库拉索'},
-  {r:2,d:9,grp:'F',bjt:'6/21 07:00',home:'荷兰',away:'瑞典'},
-  {r:2,d:9,grp:'F',bjt:'6/21 10:00',home:'突尼斯',away:'日本'},
-  {r:2,d:10,grp:'H',bjt:'6/22 01:00',home:'乌拉圭',away:'佛得角'},
-  {r:2,d:10,grp:'H',bjt:'6/22 04:00',home:'西班牙',away:'沙特'},
-  {r:2,d:10,grp:'G',bjt:'6/22 07:00',home:'比利时',away:'伊朗'},
-  {r:2,d:10,grp:'G',bjt:'6/22 10:00',home:'新西兰',away:'埃及'},
-  {r:2,d:11,grp:'I',bjt:'6/23 01:00',home:'挪威',away:'塞内加尔'},
-  {r:2,d:11,grp:'I',bjt:'6/23 04:00',home:'法国',away:'伊拉克'},
-  {r:2,d:11,grp:'J',bjt:'6/23 07:00',home:'阿根廷',away:'奥地利'},
-  {r:2,d:11,grp:'J',bjt:'6/23 10:00',home:'约旦',away:'阿尔及利亚'},
-  {r:2,d:12,grp:'L',bjt:'6/24 01:00',home:'英格兰',away:'加纳'},
-  {r:2,d:12,grp:'L',bjt:'6/24 04:00',home:'巴拿马',away:'克罗地亚'},
-  {r:2,d:12,grp:'K',bjt:'6/24 07:00',home:'葡萄牙',away:'乌兹别克斯坦'},
-  {r:2,d:12,grp:'K',bjt:'6/24 10:00',home:'哥伦比亚',away:'民主刚果'},
-  {r:3,d:13,grp:'C',bjt:'6/25 01:00',home:'苏格兰',away:'巴西'},
-  {r:3,d:13,grp:'C',bjt:'6/25 01:00',home:'摩洛哥',away:'海地'},
-  {r:3,d:13,grp:'B',bjt:'6/25 04:00',home:'瑞士',away:'加拿大'},
-  {r:3,d:13,grp:'B',bjt:'6/25 04:00',home:'波黑',away:'卡塔尔'},
-  {r:3,d:13,grp:'A',bjt:'6/25 07:00',home:'捷克',away:'墨西哥'},
-  {r:3,d:13,grp:'A',bjt:'6/25 07:00',home:'南非',away:'韩国'},
-  {r:3,d:14,grp:'E',bjt:'6/26 01:00',home:'库拉索',away:'科特迪瓦'},
-  {r:3,d:14,grp:'E',bjt:'6/26 01:00',home:'厄瓜多尔',away:'德国'},
-  {r:3,d:14,grp:'F',bjt:'6/26 04:00',home:'日本',away:'瑞典'},
-  {r:3,d:14,grp:'F',bjt:'6/26 04:00',home:'突尼斯',away:'荷兰'},
-  {r:3,d:14,grp:'D',bjt:'6/26 07:00',home:'土耳其',away:'美国'},
-  {r:3,d:14,grp:'D',bjt:'6/26 07:00',home:'巴拉圭',away:'澳大利亚'},
-  {r:3,d:15,grp:'I',bjt:'6/27 01:00',home:'挪威',away:'法国'},
-  {r:3,d:15,grp:'I',bjt:'6/27 01:00',home:'塞内加尔',away:'伊拉克'},
-  {r:3,d:15,grp:'G',bjt:'6/27 04:00',home:'埃及',away:'伊朗'},
-  {r:3,d:15,grp:'G',bjt:'6/27 04:00',home:'新西兰',away:'比利时'},
-  {r:3,d:15,grp:'H',bjt:'6/27 07:00',home:'佛得角',away:'沙特'},
-  {r:3,d:15,grp:'H',bjt:'6/27 07:00',home:'乌拉圭',away:'西班牙'},
-  {r:3,d:16,grp:'L',bjt:'6/28 01:00',home:'巴拿马',away:'英格兰'},
-  {r:3,d:16,grp:'L',bjt:'6/28 01:00',home:'克罗地亚',away:'加纳'},
-  {r:3,d:16,grp:'J',bjt:'6/28 04:00',home:'阿尔及利亚',away:'奥地利'},
-  {r:3,d:16,grp:'J',bjt:'6/28 04:00',home:'约旦',away:'阿根廷'},
-  {r:3,d:16,grp:'K',bjt:'6/28 07:00',home:'哥伦比亚',away:'葡萄牙'},
-  {r:3,d:16,grp:'K',bjt:'6/28 07:00',home:'民主刚果',away:'乌兹别克斯坦'},
+  {r:1,d:0,grp:'A',venue:'🇲🇽 墨西哥城·阿兹台克',bjt:'6/12 03:00',home:'墨西哥',away:'南非'},
+  {r:1,d:0,grp:'A',venue:'🇲🇽 瓜达拉哈拉·阿克伦',bjt:'6/12 10:00',home:'韩国',away:'捷克'},
+  {r:1,d:1,grp:'B',venue:'🇨🇦 多伦多·BMO',bjt:'6/13 03:00',home:'加拿大',away:'波黑'},
+  {r:1,d:1,grp:'D',venue:'🇺🇸 洛杉矶·SoFi',bjt:'6/13 09:00',home:'美国',away:'巴拉圭'},
+  {r:1,d:2,grp:'C',venue:'🇺🇸 波士顿·吉列',bjt:'6/14 03:00',home:'海地',away:'苏格兰'},
+  {r:1,d:2,grp:'C',venue:'🇺🇸 纽约·大都会人寿',bjt:'6/14 06:00',home:'巴西',away:'摩洛哥'},
+  {r:1,d:2,grp:'B',venue:'🇺🇸 旧金山·李维斯',bjt:'6/14 09:00',home:'卡塔尔',away:'瑞士'},
+  {r:1,d:2,grp:'D',venue:'🇨🇦 温哥华·BC Place',bjt:'6/14 12:00',home:'澳大利亚',away:'土耳其'},
+  {r:1,d:3,grp:'E',venue:'🇺🇸 休斯顿·NRG',bjt:'6/15 01:00',home:'德国',away:'库拉索'},
+  {r:1,d:3,grp:'E',venue:'🇺🇸 费城·林肯金融',bjt:'6/15 04:00',home:'科特迪瓦',away:'厄瓜多尔'},
+  {r:1,d:3,grp:'F',venue:'🇺🇸 达拉斯·AT&T',bjt:'6/15 07:00',home:'荷兰',away:'日本'},
+  {r:1,d:3,grp:'F',venue:'🇲🇽 蒙特雷·BBVA',bjt:'6/15 10:00',home:'瑞典',away:'突尼斯'},
+  {r:1,d:4,grp:'H',venue:'🇺🇸 亚特兰大·梅赛德斯',bjt:'6/16 01:00',home:'西班牙',away:'佛得角'},
+  {r:1,d:4,grp:'H',venue:'🇺🇸 迈阿密·硬石',bjt:'6/16 04:00',home:'沙特',away:'乌拉圭'},
+  {r:1,d:4,grp:'G',venue:'🇺🇸 西雅图·流明',bjt:'6/16 07:00',home:'比利时',away:'埃及'},
+  {r:1,d:4,grp:'G',venue:'🇺🇸 洛杉矶·SoFi',bjt:'6/16 10:00',home:'伊朗',away:'新西兰'},
+  {r:1,d:5,grp:'I',venue:'🇺🇸 纽约·大都会人寿',bjt:'6/17 01:00',home:'法国',away:'塞内加尔'},
+  {r:1,d:5,grp:'I',venue:'🇺🇸 波士顿·吉列',bjt:'6/17 04:00',home:'伊拉克',away:'挪威'},
+  {r:1,d:5,grp:'J',venue:'🇺🇸 堪萨斯城·箭头',bjt:'6/17 07:00',home:'阿根廷',away:'阿尔及利亚'},
+  {r:1,d:5,grp:'J',venue:'🇺🇸 旧金山·李维斯',bjt:'6/17 10:00',home:'奥地利',away:'约旦'},
+  {r:1,d:6,grp:'K',venue:'🇺🇸 休斯顿·NRG',bjt:'6/18 01:00',home:'葡萄牙',away:'民主刚果'},
+  {r:1,d:6,grp:'L',venue:'🇺🇸 达拉斯·AT&T',bjt:'6/18 04:00',home:'英格兰',away:'克罗地亚'},
+  {r:1,d:6,grp:'L',venue:'🇨🇦 多伦多·BMO',bjt:'6/18 07:00',home:'加纳',away:'巴拿马'},
+  {r:1,d:6,grp:'K',venue:'🇲🇽 墨西哥城·阿兹台克',bjt:'6/18 10:00',home:'乌兹别克斯坦',away:'哥伦比亚'},
+  {r:2,d:7,grp:'A',venue:'🇺🇸 亚特兰大·梅赛德斯',bjt:'6/19 01:00',home:'捷克',away:'南非'},
+  {r:2,d:7,grp:'B',venue:'🇺🇸 洛杉矶·SoFi',bjt:'6/19 04:00',home:'瑞士',away:'波黑'},
+  {r:2,d:7,grp:'B',venue:'🇨🇦 温哥华·BC Place',bjt:'6/19 07:00',home:'加拿大',away:'卡塔尔'},
+  {r:2,d:7,grp:'A',venue:'🇲🇽 瓜达拉哈拉·阿克伦',bjt:'6/19 10:00',home:'墨西哥',away:'韩国'},
+  {r:2,d:8,grp:'C',venue:'🇺🇸 费城·林肯金融',bjt:'6/20 01:00',home:'巴西',away:'海地'},
+  {r:2,d:8,grp:'C',venue:'🇺🇸 波士顿·吉列',bjt:'6/20 04:00',home:'苏格兰',away:'摩洛哥'},
+  {r:2,d:8,grp:'D',venue:'🇺🇸 旧金山·李维斯',bjt:'6/20 07:00',home:'土耳其',away:'巴拉圭'},
+  {r:2,d:8,grp:'D',venue:'🇺🇸 西雅图·流明',bjt:'6/20 10:00',home:'美国',away:'澳大利亚'},
+  {r:2,d:9,grp:'E',venue:'🇨🇦 多伦多·BMO',bjt:'6/21 01:00',home:'德国',away:'科特迪瓦'},
+  {r:2,d:9,grp:'E',venue:'🇺🇸 堪萨斯城·箭头',bjt:'6/21 04:00',home:'厄瓜多尔',away:'库拉索'},
+  {r:2,d:9,grp:'F',venue:'🇺🇸 休斯顿·NRG',bjt:'6/21 07:00',home:'荷兰',away:'瑞典'},
+  {r:2,d:9,grp:'F',venue:'🇲🇽 蒙特雷·BBVA',bjt:'6/21 10:00',home:'突尼斯',away:'日本'},
+  {r:2,d:10,grp:'H',venue:'🇺🇸 迈阿密·硬石',bjt:'6/22 01:00',home:'乌拉圭',away:'佛得角'},
+  {r:2,d:10,grp:'H',venue:'🇺🇸 亚特兰大·梅赛德斯',bjt:'6/22 04:00',home:'西班牙',away:'沙特'},
+  {r:2,d:10,grp:'G',venue:'🇺🇸 洛杉矶·SoFi',bjt:'6/22 07:00',home:'比利时',away:'伊朗'},
+  {r:2,d:10,grp:'G',venue:'🇨🇦 温哥华·BC Place',bjt:'6/22 10:00',home:'新西兰',away:'埃及'},
+  {r:2,d:11,grp:'I',venue:'🇺🇸 纽约·大都会人寿',bjt:'6/23 01:00',home:'挪威',away:'塞内加尔'},
+  {r:2,d:11,grp:'I',venue:'🇺🇸 费城·林肯金融',bjt:'6/23 04:00',home:'法国',away:'伊拉克'},
+  {r:2,d:11,grp:'J',venue:'🇺🇸 达拉斯·AT&T',bjt:'6/23 07:00',home:'阿根廷',away:'奥地利'},
+  {r:2,d:11,grp:'J',venue:'🇺🇸 旧金山·李维斯',bjt:'6/23 10:00',home:'约旦',away:'阿尔及利亚'},
+  {r:2,d:12,grp:'L',venue:'🇺🇸 波士顿·吉列',bjt:'6/24 01:00',home:'英格兰',away:'加纳'},
+  {r:2,d:12,grp:'L',venue:'🇨🇦 多伦多·BMO',bjt:'6/24 04:00',home:'巴拿马',away:'克罗地亚'},
+  {r:2,d:12,grp:'K',venue:'🇺🇸 休斯顿·NRG',bjt:'6/24 07:00',home:'葡萄牙',away:'乌兹别克斯坦'},
+  {r:2,d:12,grp:'K',venue:'🇲🇽 瓜达拉哈拉·阿克伦',bjt:'6/24 10:00',home:'哥伦比亚',away:'民主刚果'},
+  {r:3,d:13,grp:'C',venue:'🇺🇸 迈阿密·硬石',bjt:'6/25 01:00',home:'苏格兰',away:'巴西'},
+  {r:3,d:13,grp:'C',venue:'🇺🇸 亚特兰大·梅赛德斯',bjt:'6/25 01:00',home:'摩洛哥',away:'海地'},
+  {r:3,d:13,grp:'B',venue:'🇨🇦 温哥华·BC Place',bjt:'6/25 04:00',home:'瑞士',away:'加拿大'},
+  {r:3,d:13,grp:'B',venue:'🇺🇸 西雅图·流明',bjt:'6/25 04:00',home:'波黑',away:'卡塔尔'},
+  {r:3,d:13,grp:'A',venue:'🇲🇽 墨西哥城·阿兹台克',bjt:'6/25 07:00',home:'捷克',away:'墨西哥'},
+  {r:3,d:13,grp:'A',venue:'🇲🇽 蒙特雷·BBVA',bjt:'6/25 07:00',home:'南非',away:'韩国'},
+  {r:3,d:14,grp:'E',venue:'🇺🇸 费城·林肯金融',bjt:'6/26 01:00',home:'库拉索',away:'科特迪瓦'},
+  {r:3,d:14,grp:'E',venue:'🇺🇸 纽约·大都会人寿',bjt:'6/26 01:00',home:'厄瓜多尔',away:'德国'},
+  {r:3,d:14,grp:'F',venue:'🇺🇸 达拉斯·AT&T',bjt:'6/26 04:00',home:'日本',away:'瑞典'},
+  {r:3,d:14,grp:'F',venue:'🇺🇸 堪萨斯城·箭头',bjt:'6/26 04:00',home:'突尼斯',away:'荷兰'},
+  {r:3,d:14,grp:'D',venue:'🇺🇸 洛杉矶·SoFi',bjt:'6/26 07:00',home:'土耳其',away:'美国'},
+  {r:3,d:14,grp:'D',venue:'🇺🇸 旧金山·李维斯',bjt:'6/26 07:00',home:'巴拉圭',away:'澳大利亚'},
+  {r:3,d:15,grp:'I',venue:'🇺🇸 波士顿·吉列',bjt:'6/27 01:00',home:'挪威',away:'法国'},
+  {r:3,d:15,grp:'I',venue:'🇨🇦 多伦多·BMO',bjt:'6/27 01:00',home:'塞内加尔',away:'伊拉克'},
+  {r:3,d:15,grp:'G',venue:'🇺🇸 西雅图·流明',bjt:'6/27 04:00',home:'埃及',away:'伊朗'},
+  {r:3,d:15,grp:'G',venue:'🇨🇦 温哥华·BC Place',bjt:'6/27 04:00',home:'新西兰',away:'比利时'},
+  {r:3,d:15,grp:'H',venue:'🇺🇸 休斯顿·NRG',bjt:'6/27 07:00',home:'佛得角',away:'沙特'},
+  {r:3,d:15,grp:'H',venue:'🇲🇽 瓜达拉哈拉·阿克伦',bjt:'6/27 07:00',home:'乌拉圭',away:'西班牙'},
+  {r:3,d:16,grp:'L',venue:'🇺🇸 纽约·大都会人寿',bjt:'6/28 01:00',home:'巴拿马',away:'英格兰'},
+  {r:3,d:16,grp:'L',venue:'🇺🇸 费城·林肯金融',bjt:'6/28 01:00',home:'克罗地亚',away:'加纳'},
+  {r:3,d:16,grp:'J',venue:'🇺🇸 堪萨斯城·箭头',bjt:'6/28 04:00',home:'阿尔及利亚',away:'奥地利'},
+  {r:3,d:16,grp:'J',venue:'🇺🇸 达拉斯·AT&T',bjt:'6/28 04:00',home:'约旦',away:'阿根廷'},
+  {r:3,d:16,grp:'K',venue:'🇺🇸 迈阿密·硬石',bjt:'6/28 07:00',home:'哥伦比亚',away:'葡萄牙'},
+  {r:3,d:16,grp:'K',venue:'🇺🇸 亚特兰大·梅赛德斯',bjt:'6/28 07:00',home:'民主刚果',away:'乌兹别克斯坦'},
 ];
 
 // ═══════════════════════════════════════════
@@ -339,6 +508,7 @@ function fact(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r}
 function getH2H(h,a){return H2H[h+'|'+a]||H2H[a+'|'+h]||null}
 function formScore(f){let s=0;for(const r of f){if(r==='W')s+=3;else if(r==='D')s+=1}return s/Math.max(1,f.length*3)*100}
 
+let envWeather=0,matchVenue='';
 function analyzeMatch(home,away){
   const ht=T[home],at=T[away];if(!ht||!at)return null;
 
@@ -395,14 +565,30 @@ function analyzeMatch(home,away){
   if(h2h){const t=h2h.w+h2h.d+h2h.l;hH2H=(h2h.w+h2h.d*0.5)/t*100;aH2H=(h2h.l+h2h.d*0.5)/t*100;pH2H=h2h.p;nH2H=h2h.n;
     h2hGoals=h2h.gf+'-'+h2h.ga;h2hScores=(h2h.scores||[]).join(' ');h2hBig=h2h.big||0;
     if(h2hBig>=3)hH2H+=5;}
+  // 传递推理
+  const transitive=transitiveCompare(home,away);
+  let transBoost=0,transNote='';
+  if(transitive.length>0){
+    let hAdv=0;
+    for(const t of transitive){
+      if(t.hGd>0&&t.aGd<=0)hAdv+=1.5;
+      else if(t.hGd>t.aGd)hAdv+=1;
+      else if(t.aGd>t.hGd)hAdv-=1;
+    }
+    transBoost=hAdv*3;
+    if(transBoost>0)transNote=home+'对共同对手表现优于'+away+'（+'+Math.round(transBoost)+'分）';
+    else if(transBoost<0)transNote=away+'对共同对手表现优于'+home+'（'+Math.round(transBoost)+'分）';
+  }
   const hPen=ht.penR*100;
   const aPen=at.penR*100;
   const hMot=(ht.mot||5)*10;
   const aMot=(at.mot||5)*10;
   const hClim=ht.clim*100;
   const aClim=at.clim*100;
-  const hT3=(hPed*0.20+hH2H*0.20+hPen*0.15+hMot*0.25+hClim*0.20);
-  const aT3=(aPed*0.20+aH2H*0.20+aPen*0.15+aMot*0.25+aClim*0.20);
+  let hT3b=hPed*0.20+hH2H*0.20+hPen*0.15+hMot*0.25+hClim*0.20;
+  let aT3b=aPed*0.20+aH2H*0.20+aPen*0.15+aMot*0.25+aClim*0.20;
+  if(transBoost>0)hT3b+=transBoost;else if(transBoost<0)aT3b-=transBoost;
+  const hT3=hT3b,aT3=aT3b;
 
   // ═══ N: 噪音层 (权重10%,降权) ═══
   const hForm=formScore(ht.form);
@@ -412,9 +598,26 @@ function analyzeMatch(home,away){
   const hTN=(hRank*0.20+hForm*0.80);
   const aTN=(aRank*0.20+aForm*0.80);
 
+  // ═══ T4: 外部环境 (天气+海拔+裁判+战术相克+球迷) ═══
+  const venueData=VENUES[matchVenue]||null;
+  // 天气/海拔影响（异步已预加载，或使用默认值）
+  const wBoost=envWeather||0;
+  let hT4=50+wBoost/2,aT4=50-wBoost/2;
+  // 战术相克
+  const tactics=getTacticalClash(home,away);
+  if(tactics.boost>0)hT4+=tactics.boost;
+  else if(tactics.boost<0)aT4-=tactics.boost;
+  // 东道国场地加成（美加墨在自家国土）
+  const hosts={墨西哥:1.08,美国:1.08,加拿大:1.05};
+  const venueCountry=venueData?venueData.city:''; // 简化处理
+  if(hosts[home]&&(matchVenue||'').includes(home==='墨西哥'?'🇲🇽':home==='美国'?'🇺🇸':'🇨🇦'))hT4+=5;
+  if(hosts[away]&&(matchVenue||'').includes(away==='墨西哥'?'🇲🇽':away==='美国'?'🇺🇸':'🇨🇦'))aT4+=5;
+  // 草皮适应：天然草适合技术流，人工草适合体能流
+  const hTraits2=getTraits(home),aTraits2=getTraits(away);
+
   // ═══ 加权汇总 + 实力断层放大 ═══
-  let hRaw=hT1*0.50+hT2*0.25+hT3*0.15+hTN*0.10;
-  let aRaw=aT1*0.50+aT2*0.25+aT3*0.15+aTN*0.10;
+  let hRaw=hT1*0.45+hT2*0.20+hT3*0.15+hTN*0.10+hT4*0.10;
+  let aRaw=aT1*0.45+aT2*0.20+aT3*0.15+aTN*0.10+aT4*0.10;
   // 断层放大：差距越大，拉得越开
   const rawGap=hRaw-aRaw;
   if(rawGap>15){hRaw+=rawGap*0.2;aRaw-=rawGap*0.2}
@@ -422,9 +625,50 @@ function analyzeMatch(home,away){
   const hTotal=Math.min(99,Math.max(1,hRaw));
   const aTotal=Math.min(99,Math.max(1,aRaw));
 
-  // 主客场
-  const hVenue=ht.homeS*1.05;
-  const aVenue=at.awayS;
+  // 世界杯中立场地：只有美/加/墨在东道国有微弱主场感
+  // 其他所有球队完全中立，不存在主客场
+  let hBoost=1.0,aBoost=1.0;
+  if(hosts[home])hBoost=hosts[home];
+  if(hosts[away])aBoost=hosts[away];
+  // 球星效应：强队在任何场地都有更多当地支持者
+  const hStar=1+(ht.pedig||0)*0.005; // 血统高的队球星多=球迷多
+  const aStar=1+(at.pedig||0)*0.005;
+  const hVenue=hBoost*hStar;
+  const aVenue=aBoost*aStar;
+
+  // ═══ 天气/海拔实时影响 ═══
+  let weatherNote='';
+  if(matchVenue){
+    const v=VENUES[matchVenue];
+    if(v){
+      if(v.roof==='室内'||v.roof==='可关闭')weatherNote='🏟️室内/关顶·天气无影响';
+      else if(v.alt>2000)weatherNote='⛰️高原'+v.alt+'m·客队体能告急';
+      else if(v.alt>1000)weatherNote='🏔️高海拔'+v.alt+'m·轻微影响';
+      else weatherNote='🌤️天气正常';
+    }
+  }
+
+  // ═══ 宿敌仇恨 & 大比分倾向 & 崩盘韧性 ═══
+  const rivalry=getRivalry(home,away);
+  const hTraits=getTraits(home),aTraits=getTraits(away);
+  let rivalryNote='',blowoutBoost=1.0;
+  // 宿敌：比赛更开放，比分方差扩大
+  if(rivalry){
+    const extra=rivalry.heat*0.02; // 仇恨值→进球数增加
+    blowoutBoost+=extra;
+    rivalryNote=`🔥 ${rivalry.note}（仇恨值${rivalry.heat}/10，预期更多进球）`;
+  }
+  // 大比分倾向 vs 低韧性 = 屠杀预警
+  if(hTraits.bigWin>=8&&aTraits.resilience<=4){
+    blowoutBoost+=0.15;
+    if(!rivalryNote)rivalryNote=`⚠️ ${home}是"屠杀型"球队 vs ${away}韧性差，可能出现大比分`;
+  }
+  // 低韧性+被预测落后 → 崩盘概率翻倍
+  // 高翻盘+被预测落后 → 实际进球能力回升
+  const aFragile=aTraits.resilience<=4;
+  const hFragile=hTraits.resilience<=4;
+  const aComeback=aTraits.comeback||5;
+  const hComeback=hTraits.comeback||5;
 
   // ═══ 玄学预警 ═══
   const mystics=[];
@@ -446,9 +690,15 @@ function analyzeMatch(home,away){
   if(ht.clim<0.7)mystics.push({t:`🌡️ ${home}气候不适`,l:'warn'});
   if(at.clim<0.7)mystics.push({t:`🌡️ ${away}气候不适`,l:'warn'});
 
-  // 泊松lambda
-  const hLambda=Math.max(0.3,hTotal/100*2.5*hVenue*blowoutBoost*(aFragile?1.3:1.0)*hComeback);
-  const aLambda=Math.max(0.2,aTotal/100*2.0*aVenue*blowoutBoost*(hFragile?1.3:1.0)*aComeback);
+  // 泊松lambda（含宿敌/大比分/韧性/翻盘修正）
+  const hBase=hTotal/100*2.5*hVenue*blowoutBoost;
+  const aBase=aTotal/100*2.0*aVenue*blowoutBoost;
+  // 低韧性崩盘修正 + 高翻盘修正（落后时进球能力回升）
+  // 强队高翻盘：即使被偷一球，也能加倍打回来
+  const hComebackBoost=1+(hComeback-5)*0.03; // 翻盘9→+12%
+  const aComebackBoost=1+(aComeback-5)*0.03;
+  const hLambda=Math.max(0.3,hBase*(aFragile?1.3:1.0)*hComebackBoost);
+  const aLambda=Math.max(0.2,aBase*(hFragile?1.3:1.0)*aComebackBoost);
 
   return{
     hTotal:Math.round(hTotal),aTotal:Math.round(aTotal),
@@ -557,10 +807,56 @@ function startAutoFetch(){
   setInterval(fetchNews,10800000); // 伤病/舆情3小时刷新
 }
 
+// ═══════════════════════════════════════════
+// 实时舆情抓取：Reddit r/soccer + 关键词情感分析（免费，无需密钥）
+// ═══════════════════════════════════════════
+const NEWS_TEAMS=['Argentina','Brazil','Germany','France','England','Spain','Portugal','Netherlands','Italy','Croatia','Belgium','Uruguay','Mexico','USA','Japan','Korea','Morocco','Colombia','Ecuador','Norway'];
+const SENT_POS=['win','victory','dominate','unstoppable','clinical','brilliant','stunning','confident','bounce','thrive','impressive','masterclass','hero','amazing','incredible','champion','favorite','unstoppable','rampant','soar'];
+const SENT_NEG=['injury','injured','loss','defeat','controversy','scandal','upset','struggling','crisis','doubt','concern','blow','out of','sidelined','nightmare','disaster','humiliat','shock','worried','pressure','fear','anxiety','fight','rift','bust-up','row','clash','protest','boycott','suspension','ban','red card','sent off'];
+const INJURY_WORDS=['injury','injured','ACL','fracture','out of World Cup','doubtful','sidelined','missed training','scan','MRI','hamstring','ankle','knee','groin','muscle','strain','tear','rupture','broken','surgery','recovery','rehab','crutches','ruled out'];
+
+const EN_CN={Argentina:'阿根廷',Brazil:'巴西',Germany:'德国',France:'法国',England:'英格兰',Spain:'西班牙',Portugal:'葡萄牙',Netherlands:'荷兰',Italy:'意大利',Croatia:'克罗地亚',Belgium:'比利时',Uruguay:'乌拉圭',Mexico:'墨西哥',USA:'美国',Japan:'日本',Korea:'韩国',Morocco:'摩洛哥',Colombia:'哥伦比亚',Ecuador:'厄瓜多尔',Norway:'挪威'};
+
 async function fetchNews(){
-  console.log('📰 News/injury check at',new Date().toLocaleTimeString());
-  // 后续接入新闻API：抓取各队伤病、球员情绪、负面新闻
-  // 更新 TEAMS[name].inj/discipline/news 字段
+  console.log('📰 舆情抓取开始...');
+  for(const en of NEWS_TEAMS){
+    try{
+      const q=encodeURIComponent(en+' World Cup 2026');
+      const url='https://www.reddit.com/r/soccer/search.json?q='+q+'&sort=new&restrict_sr=on&limit=5&t=week';
+      const resp=await fetch(url);
+      if(!resp.ok)continue;
+      const data=await resp.json();
+      const posts=(data.data&&data.data.children)||[];
+      if(posts.length===0)continue;
+
+      let sentScore=0,injuryCount=0,disciplineChange=0;
+      for(const p of posts){
+        const title=(p.data.title||'').toLowerCase();
+        const ups=p.data.ups||0;
+        const weight=Math.min(3,1+ups*0.01); // 高赞加权
+
+        // 情感分析
+        let pos=0,neg=0,inj=0;
+        for(const w of SENT_POS){if(title.includes(w))pos++}
+        for(const w of SENT_NEG){if(title.includes(w))neg++}
+        for(const w of INJURY_WORDS){if(title.includes(w))inj++}
+
+        sentScore+=(pos-neg)*weight;
+        injuryCount+=inj;
+        // 纪律相关（队内冲突、红牌等）
+        if(title.includes('red card')||title.includes('sent off')||title.includes('fight')||title.includes('rift'))disciplineChange-=1;
+      }
+
+      // 更新TEAMS
+      const cn=EN_CN[en];if(!cn||!T[cn])continue;
+      const oldNews=T[cn].news||0;
+      T[cn].news=Math.max(-10,Math.min(10,oldNews+Math.round(sentScore*0.5)));
+      if(injuryCount>0)T[cn].inj=Math.min(5,(T[cn].inj||0)+Math.min(3,injuryCount));
+      if(disciplineChange<0)T[cn].discipline=Math.max(1,(T[cn].discipline||5)+disciplineChange);
+    }catch(e){/* skip team on error */}
+  }
+  console.log('📰 舆情更新完成');
+  updateStatus();
 }
 
 const DAY_LABELS={0:'6/12 周五',1:'6/13 周六',2:'6/14 周日',3:'6/15 周一',4:'6/16 周二',5:'6/17 周三',6:'6/18 周四',7:'6/19 周五',8:'6/20 周六',9:'6/21 周日',10:'6/22 周一',11:'6/23 周二',12:'6/24 周三',13:'6/25 周四',14:'6/26 周五',15:'6/27 周六',16:'6/28 周日'};
@@ -601,15 +897,29 @@ function renderAnalysis(a){
     for(const m of a.mystics)html+=`<span class="mystic-badge ${m.l}">${m.t}</span>`;
     html+='</div>';
   }
+  if(a.rivalryNote)html+=`<div style="font-size:8px;color:#ef4444;margin-top:2px">${a.rivalryNote}</div>`;
+  if(a.transNote)html+=`<div style="font-size:8px;color:#fbbf24;margin-top:2px">🔗 ${a.transNote}</div>`;
+  if(a.hBigWin>=8&&a.aResilience<=4)html+=`<div style="font-size:8px;color:#ef4444;margin-top:1px">⚠️ 大比分预警：强攻型 vs 低韧性</div>`;
+  if(a.blowoutBoost>5)html+=`<div style="font-size:8px;color:#fbbf24;margin-top:1px">💥 预期进球数+${a.blowoutBoost}%（仇恨/屠杀加成）</div>`;
+  if(a.wNote)html+=`<div style="font-size:8px;color:#60a5fa;margin-top:2px">${a.wNote}</div>`;
+  if(a.tacticsNote)html+=`<div style="font-size:8px;color:#fbbf24;margin-top:1px">⚔️ ${a.tacticsNote}</div>`;
   if(a.nH2H)html+=`<div style="font-size:8px;color:#64748b;margin-top:2px">📝 ${a.nH2H}</div>`;
   html+='</div>';
   return html;
 }
 
+async function loadWeatherForMatches(matches){
+  for(const m of matches){
+    const v=VENUES[m.venue];if(!v)continue;
+    const w=await getWeather(v.lat,v.lon);
+    m._weather=w;m._wImpact=weatherImpact(w,v);
+  }
+}
 function showDay(d){
-  try{
   currentDay=d;renderDayTabs();
   const matches=SCHEDULE.filter(m=>m.d===d);
+  // 异步加载天气（不阻塞渲染）
+  loadWeatherForMatches(matches).then(()=>{if(currentDay===d)showDay(d)});
   let html='';
   for(const m of matches){
     const r=getResult(m);
@@ -617,23 +927,23 @@ function showDay(d){
       html+=`<div class="card" style="opacity:0.85">
         <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:#fbbf24">${m.grp}组·第${m.r}轮</span><span style="font-size:9px;color:#64748b">${m.bjt} 北京时间</span></div>
         <div style="font-size:8px;color:#64748b;margin-bottom:3px">${m.venue||''}</div>
-        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role"></span></div><div class="score-box">${r[0]}-${r[1]}</div><div class="team" style="color:#94a3b8;text-align:right">${m.away}<span class="role"></span></div><div class="flag">${flag(m.away)}</div></div>
+        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}</div><div class="score-box">${r[0]}-${r[1]}</div><div class="team" style="color:#94a3b8;text-align:right">${m.away}</div><div class="flag">${flag(m.away)}</div></div>
         <span class="result-tag">已结束</span></div>`;
     }else{
-      const pred=predict(m.home,m.away);
+      envWeather=m._wImpact?m._wImpact.boost:0;matchVenue=m.venue||'';
+    const pred=predict(m.home,m.away);
       const a=pred.analysis;
       html+=`<div class="card">
         <div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:#fbbf24">${m.grp}组·第${m.r}轮</span><span style="font-size:9px;color:#64748b">${m.bjt} 北京时间</span></div>
         <div style="font-size:8px;color:#64748b;margin-bottom:3px">${m.venue||''}</div>
-        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role"> · ${a?Math.round(a.hTotal):'?'}分</span></div><div class="vs">VS</div><div class="team" style="color:#94a3b8;text-align:right">${m.away}<span class="role"> · ${a?Math.round(a.aTotal):'?'}分</span></div><div class="flag">${flag(m.away)}</div></div>
-        <div style="font-size:9px;color:#64748b;margin:2px 0">AI多因子预测比分（左队在前）</div><div class="preds">`;
-      for(const p of pred.scores)html+=`<div class="pred"><div class="s">${p.score}</div><div class="p">${p.prob}%</div><div class="bar"><div class="bar-fill" style="width:${p.prob}%"></div></div></div>`;
+        <div class="match"><div class="flag">${flag(m.home)}</div><div class="team">${m.home}<span class="role">${a?Math.round(a.hTotal):'?'}分</span></div><div class="vs">VS</div><div class="team" style="color:#94a3b8;text-align:right"><span class="role">${a?Math.round(a.aTotal):'?'}分 </span>${m.away}</div><div class="flag">${flag(m.away)}</div></div>
+        <div style="font-size:9px;color:#64748b;margin:2px 0">AI预测比分（左队在前）</div><div class="preds">`;
+      for(const p of pred.scores){const parts=p.score.split('-');html+=`<div class="pred"><div class="s"><span style="color:#fbbf24">${parts[0]}</span>-<span style="color:#fbbf24">${parts[1]}</span></div><div class="p">${p.prob}%</div><div class="bar"><div class="bar-fill" style="width:${p.prob}%"></div></div></div>`;}
       html+=`</div><div class="wdl"><span>${m.home}胜 ${pred.hWin}%</span><span>平 ${pred.draw}%</span><span>${m.away}胜 ${pred.aWin}%</span></div>`;
       html+=renderAnalysis(a)+`</div>`;
     }
   }
   document.getElementById('matchList').innerHTML=html||'<div style="text-align:center;padding:40px;color:#64748b">今日无比赛</div>';
-  }catch(e){document.getElementById('matchList').innerHTML='<div style=\"text-align:center;padding:40px;color:#ef4444\">❌ 错误: '+e.message+'</div>';console.error(e)}
 }
 
 // ═══════════════════════════════════════════
@@ -707,7 +1017,7 @@ function switchView(v){
   if(v==='schedule')showDay(currentDay);
 }
 function renderAll(){renderDayTabs();if(currentView==='schedule')showDay(currentDay);if(currentView==='groups')renderGroups();if(currentView==='bracket')renderBracket();}
-function updateStatus(){const t=Object.keys(RESULTS).length;document.getElementById('statusBar').innerHTML=`四层特征+ELO断层放大 | ESPN实时比分 | ${t}/${SCHEDULE.length}场已出结果 <span class="auto-refresh">🔄60s</span>`;}
+function updateStatus(){const t=Object.keys(RESULTS).length;document.getElementById('statusBar').innerHTML=`全因子模型(含天气/海拔/战术/宿敌) | ESPN实时 | ${t}/${SCHEDULE.length}场 <span class="auto-refresh">🔄60s</span>`;}
 
 renderDayTabs();showDay(0);updateStatus();
 startAutoFetch();
