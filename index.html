@@ -485,7 +485,7 @@ async function fetchScores(){
         const hAbbr=teams[0].team.abbreviation,aAbbr=teams[1].team.abbreviation;
         const hName=ESPN_MAP[hAbbr]||teams[0].team.displayName;
         const aName=ESPN_MAP[aAbbr]||teams[1].team.displayName;
-        const status=e.status.type.description||'';
+        const status=(e.status&&e.status.type&&e.status.type.description)||'';
         if(status==='Full Time'||status.indexOf('Final')>=0){
           const key=hName+'|'+aName,hScore=parseInt(teams[0].score)||0,aScore=parseInt(teams[1].score)||0;
           const old=RESULTS[key];
