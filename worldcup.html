@@ -811,7 +811,19 @@ async function fetchScores(){
         if(status==='Full Time'||status.indexOf('Final')>=0){
           const key=hName+'|'+aName,hScore=parseInt(teams[0].score)||0,aScore=parseInt(teams[1].score)||0;
           const old=RESULTS[key];
-          if(!old||old[0]!==hScore||old[1]!==aScore){RESULTS[key]=[hScore,aScore];changed=true}
+          if(!old||old[0]!==hScore||old[1]!==aScore){
+            RESULTS[key]=[hScore,aScore];changed=true;
+            // 根据真实比分自动生成新闻
+            var wl=hScore>aScore?'击败':'战平';if(hScore>aScore)wl='击败';else if(hScore<aScore)wl='不敌';else wl='战平';
+            var hs='📈';if(hScore<aScore)hs='📉';else if(hScore===aScore)hs='➖';
+            var as='📉';if(aScore>hScore)as='📈';else if(hScore===aScore)as='➖';
+            var hT=hName+' '+hScore+'-'+aScore+' '+wl+' '+aName+' · 世界杯小组赛';
+            var aT=aName+' '+aScore+'-'+hScore+' '+(aScore>hScore?'击败':aScore<hScore?'不敌':'战平')+' '+hName+' · 世界杯小组赛';
+            NEWS_FEED[hName]=NEWS_FEED[hName]||[];NEWS_FEED[aName]=NEWS_FEED[aName]||[];
+            NEWS_FEED[hName].unshift({e:hs,t:hT,u:200});NEWS_FEED[aName].unshift({e:as,t:aT,u:200});
+            if(NEWS_FEED[hName].length>5)NEWS_FEED[hName]=NEWS_FEED[hName].slice(0,5);
+            if(NEWS_FEED[aName].length>5)NEWS_FEED[aName]=NEWS_FEED[aName].slice(0,5);
+          }
         }
       }
     }
@@ -838,7 +850,7 @@ const INJURY_WORDS=['injury','injured','ACL','fracture','out of World Cup','doub
 const EN_CN={Argentina:'阿根廷',Brazil:'巴西',Germany:'德国',France:'法国',England:'英格兰',Spain:'西班牙',Portugal:'葡萄牙',Netherlands:'荷兰',Italy:'意大利',Croatia:'克罗地亚',Belgium:'比利时',Uruguay:'乌拉圭',Mexico:'墨西哥',USA:'美国',Japan:'日本',Korea:'韩国',Morocco:'摩洛哥',Colombia:'哥伦比亚',Ecuador:'厄瓜多尔',Norway:'挪威'};
 
 // 舆情存储：存每个队最近的新闻标题（最多5条）
-var NEWS_FEED={墨西哥:[{e:'📈',t:'墨西哥2-0击败南非 希门尼斯梅开二度 主场球迷沸腾',u:350}],南非:[{e:'📉',t:'南非0-2不敌墨西哥 错失多次良机 出线形势严峻',u:120}],韩国:[{e:'📈',t:'韩国2-1绝杀捷克 孙兴愍带队逆转 亚洲之光闪耀',u:280}],捷克:[{e:'📉',t:'捷克1-2遭韩国逆转 上半场领先却痛失好局',u:95}],加拿大:[{e:'➖',t:'加拿大主场首秀在即 全国期待历史性突破',u:150}],波黑:[{e:'📉',t:'波黑备战遇阻 主力后卫伤疑 首战前景蒙阴影',u:80}],美国:[{e:'📈',t:'美国队信心满满迎战巴拉圭 普利西奇确认首发',u:200}],巴拉圭:[{e:'➖',t:'巴拉圭欲阻击东道主美国 防守反击成制胜关键',u:60}],德国:[{e:'📈',t:'德国队全员健康 基米希放话：我们准备好了',u:220}],库拉索:[{e:'➖',t:'库拉索首登世界杯舞台 小国大梦想',u:90}],巴西:[{e:'📈',t:'维尼修斯状态火热 巴西队夺冠大热门',u:300}],摩洛哥:[{e:'📈',t:'摩洛哥延续2022四强气势 北非雄狮信心满满',u:170}],阿根廷:[{e:'📈',t:'梅西最后一届世界杯 阿根廷全力冲击卫冕',u:450}],阿尔及利亚:[{e:'➖',t:'阿尔及利亚欲爆冷阿根廷 小组赛首战蓄势待发',u:55}],法国:[{e:'📈',t:'姆巴佩领衔法国队 卫冕冠军士气高涨',u:280}],英格兰:[{e:'📈',t:'英格兰信心十足 贝林厄姆成关键先生',u:250}],西班牙:[{e:'📈',t:'西班牙年轻阵容蓄势待发 新黄金一代崭露头角',u:190}],葡萄牙:[{e:'📈',t:'C罗最后一届世界杯 葡萄牙目标直指冠军',u:350}],荷兰:[{e:'📈',t:'荷兰成黑马热门 德容状态火热',u:160}],日本:[{e:'📈',t:'日本队目标超越2022十六强 蓝武士信心十足',u:140}],克罗地亚:[{e:'➖',t:'莫德里奇最后一舞 格子军团经验丰富但阵容老化',u:180}],};
+var NEWS_FEED={};
 
 async function fetchNews(){
   console.log('📰 舆情抓取...');
